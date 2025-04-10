@@ -1,0 +1,12 @@
+Notes on how modules should work:
+ -  Define inputs and outputs
+ -  idea: For workflow-type pipelines, there should be a persistent data object that keeps getting updated
+        - Optionally, output for specific steps could also be saved (mem management?)
+ -  Should these modules input/outputs optionally be overwritable? Or is this overengineering...
+
+Plotting:
+ -  Plotting with this modular flow remains a challenge...
+ -  Perhaps write to a consistent key in DataContext such as "plotting", 
+    appending a structured Title, Caption, Graphic structure, eventually stitched together by some plotting module?
+
+    

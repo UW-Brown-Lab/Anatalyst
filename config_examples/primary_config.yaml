@@ -1,0 +1,17 @@
+pipeline:
+  name: minimal_qc_pipeline
+  output_dir: ./output
+  
+modules:
+  - name: data_loading
+    type: DataLoading
+    params:
+      file_path: /path/to/sample_filtered_feature_bc_matrix.h5
+      
+  - name: qc_metrics
+    type: QCMetrics
+    params:
+      mito_pattern: "^MT-"
+      ribo_pattern: "^RP[SL]"
+      
+      

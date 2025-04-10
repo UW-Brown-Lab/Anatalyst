@@ -1,0 +1,28 @@
+sc_pipeline/
+├── Dockerfile
+├── environment.yml
+├── config_examples/
+│   └── minimal_config.yaml
+├── sc_pipeline/
+│   ├── __init__.py
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── module.py         # Base module class
+│   │   ├── executor.py       # Pipeline executor
+│   │   ├── config.py         # Config parser
+│   │   └── data_context.py   # Data storage/management
+│   ├── modules/
+│   │   ├── __init__.py
+│   │   ├── data_loading.py
+│   │   ├── qc_metrics.py
+│   │   ├── filtering.py
+│   │   ├── ambient_removal.py
+│   │   ├── normalization.py
+│   │   ├── dim_reduction.py
+│   │   └── clustering.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── r_bridge.py       # R/Python interop
+│       └── plotting.py       # Common plotting functions
+└── scripts/
+    └── run_pipeline.py
