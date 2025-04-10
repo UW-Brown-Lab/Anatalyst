@@ -9,10 +9,11 @@ import shutil
 class RBridge:
     """Bridge for calling R functions from Python with a workspace directory for file exchange"""
 
-    def __init__(self, r_script_dir=None, workspace_dir=None, cleanup=True):
+    def __init__(self, r_script_dir=None, workspace_dir=None, cleanup=True, memory_limit_gb=None):
         self.logger = logging.getLogger("RBridge")
         self.r_script_dir = r_script_dir
         self.cleanup = cleanup
+        self.memory_limit_gb = memory_limit_gb
         
         # Create workspace directory if not provided
         if workspace_dir:
@@ -46,8 +47,32 @@ class RBridge:
             if not os.path.exists(script_path):
                 raise FileNotFoundError(f"R script not found: {script_path}")
             
+            # Create a temporary wrapper script that injects resource management code
+            wrapper_file = tempfile.NamedTemporaryFile(suffix='.R', delete=False)
+
+            # Get memory limit in bytes (default GB if not specified)
+            memory_bytes = int((self.memory_limit_gb or 8) * 1e9)
+
+            # Write resource management preamble and the include the original script
+            with open(wrapper_file.name, 'w') as f:
+                f.write(f"""
+# ==== Begin Resource Management ====
+# Set memory limits for process
+if(requireNamespace("unix", quietly = TRUE)) {{
+    unix::rlimit_as({memory_bytes}, {memory_bytes})
+}}
+# Set future package memory limits
+options(future.globals.maxSize = {memory_bytes})
+options(future.rng.onMisuse = "ignore")
+# ==== End Resource Management ====
+
+# Source the actual script
+source("{script_path}")
+""")
+
+
             # Build the R command
-            r_cmd = ['Rscript', script_path]
+            r_cmd = ['Rscript', wrapper_file.name]
             
             # Add workspace directory as first argument
             r_cmd.append(self.workspace_dir)
@@ -64,6 +89,9 @@ class RBridge:
             
             result = subprocess.run(r_cmd, check=True, capture_output=True, text=True)
             
+            # Clean up the temporary wrapper file
+            os.unlink(wrapper_file.name)
+
             self.logger.info(f"R script {script_name} completed successfully")
             return (True, result.stdout, result.stderr)
         

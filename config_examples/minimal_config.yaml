@@ -1,6 +1,7 @@
 pipeline:
   name: minimal_qc_pipeline
   output_dir: ./output
+  r_memory_limit_gb: 8
   
 modules:
   - name: data_loading

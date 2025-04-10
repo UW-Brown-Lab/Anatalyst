@@ -1,5 +1,6 @@
 # sc_pipeline/core/config.py
 
+from traitlets import default
 import yaml
 import logging
 from pathlib import Path
@@ -31,6 +32,10 @@ class ConfigParser:
 
                 # Validate the configuration
                 self._validate_config(config)
+            
+                # Set defualt values for optional configuration
+                self._set_defaults(config)
+
                 return config
             
         except yaml.YAMLError as e:
@@ -62,3 +67,9 @@ class ConfigParser:
                 raise ValueError(f"Module at index {idx} missing name")
             if 'type' not in module:
                 raise ValueError(f"Module {module.get('name', f'at index {idx}')} missing type")
+            
+    def _set_defaults(self, config):
+        """Set default values for optional configuration parameters"""
+        # Set default R memory limit if not specified
+        if 'r_memory_limit_gb' not in config['pipeline']:
+            config['pipeline']['r_memory_limit_gb'] = 8

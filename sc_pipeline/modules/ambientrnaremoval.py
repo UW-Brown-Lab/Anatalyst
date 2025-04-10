@@ -56,12 +56,16 @@ class AmbientRNARemoval(AnalysisModule):
                 return False
                 
             # Create R bridge
-            r_bridge = RBridge(cleanup=True)
+            r_memory_limit_gb = data_context.get("R_MEMORY_LIMIT_GB", 8)
+            self.logger.info(f"Using R memory limit of {r_memory_limit_gb} GB")
+            r_bridge = RBridge(cleanup=True, memory_limit_gb=r_memory_limit_gb)
             
             # Prepare arguments for the R script
             args = {
                 'raw_counts_path': raw_counts_path,
                 'filtered_counts_path': filtered_counts_path,
+                'output_matrix':'corrected_counts.mtx',
+                'output_metadata': 'soupx_metadata.json',
                 'modality': self.params.get('modality', 'Gene Expression'),
                 'ndims': self.params.get('ndims', 30),
                 'resolution': self.params.get('resolution', 0.8)

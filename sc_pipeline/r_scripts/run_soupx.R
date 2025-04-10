@@ -23,12 +23,12 @@ arg_values <- args[arg_pairs + 1]
 named_args <- setNames(arg_values, arg_names)
 
 # Define paths for output files
-output_matrix_path <- file.path(workspace_dir, named_args$output_matrix)
-output_metadata_path <- file.path(workspace_dir, named_args$output_metadata)
+output_matrix_path <- file.path(workspace_dir, named_args['output_matrix'])
+output_metadata_path <- file.path(workspace_dir, named_args['output_metadata'])
 
 # Load the data
-raw_data <- Read10X_h5(named_args$raw_counts_path)
-filtered_data <- Read10X_h5(named_args$filtered_counts_path)
+raw_data <- Read10X_h5(named_args["raw_counts_path"])
+filtered_data <- Read10X_h5(named_args["filtered_counts_path"])
 
 # Collect messages for output
 all_messages <- c()
@@ -84,7 +84,8 @@ all_messages <- c(all_messages, msg)
 seurat_obj <- RunPCA(seurat_obj)
 
 # Determine number of PCs to use
-ndims <- min(args$ndims %||% 30, ncol(seurat_obj@reductions$pca@cell.embeddings))
+ndims <- as.numeric(named_args["ndims"]) %||% 30
+ndims <- min(ndims, ncol(seurat_obj@reductions$pca@cell.embeddings))
 
 msg <- "Running UMAP..."
 all_messages <- c(all_messages, msg)
@@ -96,7 +97,7 @@ seurat_obj <- FindNeighbors(seurat_obj, dims = 1:ndims, verbose = F)
 
 msg <- "Finding clusters..."
 all_messages <- c(all_messages, msg)
-resolution <- args$resolution %||% 0.8
+resolution <- named_args["resolution"] %||% 0.8
 seurat_obj <- FindClusters(seurat_obj, resolution = resolution)
 
 # Extract clusters
@@ -133,8 +134,8 @@ out <- SoupX::adjustCounts(sc)
 # Save results to matrix output file
 writeMM(out, output_matrix_path)
 # Save row and column names for checking before adding back to AnnData
-writeLines(rownames(out), file.path(workspace_dir, "features.txt"))
-writeLines(colnames(out), file.path(workspace_dir, "barcodes.txt"))
+write(rownames(out), file.path(workspace_dir, "features.txt"))
+write(colnames(out), file.path(workspace_dir, "barcodes.txt"))
 msg <- "SoupX processing complete."
 all_messages <- c(all_messages, msg)
 
