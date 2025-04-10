@@ -57,6 +57,8 @@ class PipelineExecutor:
         r_memory_limit_gb = self.config['pipeline'].get('r_memory_limit_gb', 8)
         self.data_context.set('R_MEMORY_LIMIT_GB', r_memory_limit_gb)
         self.logger.info(f"Setting global R memory limit to {r_memory_limit_gb} GB")
+        self.data_context.set('OUTPUT_DIR', self.config['pipeline']['output_dir'])
+        self.data_context.set('FIGURE_SETTINGS')
 
     def run(self, start_from=None):
         """

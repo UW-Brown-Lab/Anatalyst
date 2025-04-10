@@ -73,3 +73,9 @@ class ConfigParser:
         # Set default R memory limit if not specified
         if 'r_memory_limit_gb' not in config['pipeline']:
             config['pipeline']['r_memory_limit_gb'] = 8
+
+        if  'figure_defaults' not in config['pipeline']:
+            config['pipeline']['figure_defaults'] = {
+                "width": 8,
+                "height": 6
+            }

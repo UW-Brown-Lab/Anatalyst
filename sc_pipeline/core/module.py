@@ -1,4 +1,5 @@
 # sc_pipeline/core/module.py
+import os
 
 class AnalysisModule:
     """Base class for all analysis modules in the pipeline"""
@@ -43,3 +44,28 @@ class AnalysisModule:
             "required_inputs": self.required_inputs,
             "outputs": self.outputs
         }
+
+    def save_figure(self, module_name, fig, figsize, name, output_dir, dpi=300):
+        """ Save a matplotlib figure to the report images directory
+
+        Args:
+            module_name (str): Name of the module generating the figure.
+            fig (Matplotlib figure object): The figure to be saved.
+            figsize (tuple): Tuple of (width, height) in inches. If none, uses standardized size.
+            name (str): Name for the figure file (without extension)
+            output_dir (str): Base output directory for the pipeline
+            dpi (int, optional): DPI for saving the figure. Defaults to 300.
+
+        Returns:
+            str: Path to the saved image file
+        """
+
+        image_dir = os.path.join(output_dir, 'images')
+        os.makedirs(image_dir, exist_ok=True)
+        
+        image_path = os.path.join(image_dir, f"{module_name}_{name}.png")
+
+        fig.set_size_inches(figsize)
+        fig.savefig(image_path, dpi=dpi, bbox_inches='tight')
+        
+        return image_path
