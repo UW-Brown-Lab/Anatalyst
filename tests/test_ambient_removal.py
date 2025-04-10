@@ -7,6 +7,7 @@ import scanpy as sc
 import numpy as np
 import tempfile
 import shutil
+import logging
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -24,6 +25,9 @@ class AmbientRNARemovalTest(unittest.TestCase):
         
         # Create a test data context
         self.data_context = DataContext(self.test_dir)
+
+        # Test logging
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         
         # Define paths to test data
         self.filtered_h5_path = os.path.join(
@@ -71,7 +75,7 @@ class AmbientRNARemovalTest(unittest.TestCase):
         self.assertTrue(success, "Ambient RNA removal module failed to run")
         
         # Get the processed data
-        adata = self.data_context.get('loaded_data')
+        adata = self.data_context.get('data')
         
         # Check that layers were created
         self.assertIn('original', adata.layers, "Original layer not created")

@@ -9,6 +9,9 @@ suppressPackageStartupMessages({
   library(jsonlite)
 })
 
+# Disable automatic pdf generation
+pdf(NULL)
+
 # Parse command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -97,7 +100,7 @@ seurat_obj <- FindNeighbors(seurat_obj, dims = 1:ndims, verbose = F)
 
 msg <- "Finding clusters..."
 all_messages <- c(all_messages, msg)
-resolution <- named_args["resolution"] %||% 0.8
+resolution <- as.numeric(named_args["resolution"] %||% 0.8)
 seurat_obj <- FindClusters(seurat_obj, resolution = resolution)
 
 # Extract clusters
@@ -121,7 +124,7 @@ if (ncol(filtered_counts_subset) < 500) {
 }
 
 sc <- SoupX::autoEstCont(sc, tfidf = use_tfidf)
-contamination <- round(sc$fit$prop.cont, 4)
+contamination <- round(sc$fit$rhoEst, 4)
 
 msg <- paste0("Estimated contamination fraction: ", contamination)
 all_messages <- c(all_messages, msg)

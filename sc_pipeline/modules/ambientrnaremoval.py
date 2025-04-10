@@ -6,6 +6,7 @@ import tempfile
 from bleach import clean
 import scanpy as sc
 import scipy.io
+import scipy.sparse as sp
 import json
 from sc_pipeline.core.module import AnalysisModule
 from sc_pipeline.utils.r_bridge import RBridge
@@ -112,40 +113,22 @@ class AmbientRNARemoval(AnalysisModule):
             
             # Read the corrected matrix
             corrected_counts = scipy.io.mmread(corrected_mtx_path)
+            corrected_counts = sp.csr_matrix(corrected_counts)
 
-            # Read row and column names
-            with open(features_path, 'r') as f:
-                features = [line.strip() for line in f]
-            with open(barcodes_path, 'r') as f:
-                barcodes = [line.strip() for line in f]
-
-            # Ensure the matrix dimensions match the feature and barcode lists
-            assert corrected_counts.shape[0] == len(features), "Matrix row count doesn't match features"
-            assert corrected_counts.shape[1] == len(barcodes), "Matrix column count doesn't match barcodes"
+            # Log the current shape of the matrix
+            self.logger.info(f"Original matrix shape from SoupX: {corrected_counts.shape}")
+            self.logger.info(f"Expected shape for AnnData: {adata.shape}")
+            
+            # Check if we need to transpose the matrix
+            if corrected_counts.shape[0] != adata.shape[0]:
+                self.logger.info("Matrix dimensions don't match AnnData - transposing")
+                corrected_counts = corrected_counts.transpose()
+                self.logger.info(f"New shape after transposition: {corrected_counts.shape}")
 
             # Save the original counts as a layer if not already done
             if 'original' not in adata.layers:
                 self.logger.info("Storing original counts in 'original' layer")
                 adata.layers['original'] = adata.X.copy()
-            
-            # Ensure the corrected matrix is aligned with the existing AnnData object
-            adata_barcodes = adata.obs_names.tolist()
-            adata_features = adata.var_names.tolist()
-            # Check for barcode alignment - most critical for single-cell data
-            if barcodes != adata_barcodes:
-                self.logger.info("Aligning cell barcodes between corrected matrix and AnnData object")
-                # Get indices for reordering
-                idx_map = {bc: i for i, bc in enumerate(barcodes)}
-                indices = [idx_map[bc] for bc in adata_barcodes if bc in idx_map]
-                corrected_counts = corrected_counts[:, indices]
-
-            # Check for feature alignment
-            if features != adata_features:
-                self.logger.info("Aligning features between corrected matrix and AnnData object")
-                # Get indices for reordering
-                idx_map = {feat: i for i, feat in enumerate(features)}
-                indices = [idx_map[feat] for feat in adata_features if feat in idx_map]
-                corrected_counts = corrected_counts[indices, :]
 
             # Add the SoupX-corrected counts as a new layer
             self.logger.info("Adding SoupX-corrected counts as 'soupx_corrected' layer")
@@ -154,7 +137,7 @@ class AmbientRNARemoval(AnalysisModule):
             # Replace the main matrix with the corrected counts if specified
             if self.params.get('replace_main_matrix', True):
                 self.logger.info("Replacing main matrix with SoupX-corrected counts")
-                adata.X = adata.layers['soupx_corrected']
+                adata.X = adata.layers['soupx_corrected'].copy()
             
             # Add SoupX as a processing step in the unstructured data
             adata.uns['ambient_rna_removed'] = True
