@@ -71,3 +71,28 @@ class DataContext:
         except Exception as e:
             self.logger.error(f"Failed to load checkpoint: {e}")
             return False
+        
+    def add_figure(self, module_name, title=None, description=None, image_path=None, caption=None):
+        """
+        Adds figure to data context to ultimately be compiled into a report by ReportGenerator Module at end of pipeline run.
+
+        Args:
+            module_name (str): Module name that generated the figure.
+            title (str, optional): Title of the figure. Defaults to None.
+            description (str, optional): Description of the figure to be displayed below the title. Defaults to None.
+            image_path (str, optional): Path of image to be displayed in the figure. Defaults to None.
+            caption (str, optional): Caption to be displayed under the image. Defaults to None.
+        """
+        
+        if 'REPORT_FIGURES' not in self._data:
+            self._data['REPORT_FIGURES'] = {}
+
+        if module_name not in self._data['REPORT_FIGURES']:
+            self._data['REPORT_FIGURES'][module_name] = []
+
+        self._data['REPORT_FIGURES'][module_name].append({
+            'title': title,
+            'description': description,
+            'image_path': image_path,
+            'caption': caption
+        })
