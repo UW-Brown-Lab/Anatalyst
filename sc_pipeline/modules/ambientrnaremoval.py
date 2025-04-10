@@ -3,8 +3,10 @@
 import os
 import logging
 import tempfile
+from bleach import clean
 import scanpy as sc
-import scipy.sparse as sp
+import scipy.io
+import json
 from sc_pipeline.core.module import AnalysisModule
 from sc_pipeline.utils.r_bridge import RBridge
 
@@ -16,8 +18,8 @@ class AmbientRNARemoval(AnalysisModule):
         self.logger = logging.getLogger(f"Module.{name}")
         
         # Define required inputs and outputs
-        self.required_inputs = ["loaded_data"]
-        self.outputs = ["loaded_data"]  # We now modify the same object instead of creating a new one
+        self.required_inputs = ["data"]
+        self.outputs = ["data"]  # We now modify the same object instead of creating a new one
         
     def run(self, data_context):
         """
@@ -31,7 +33,7 @@ class AmbientRNARemoval(AnalysisModule):
         """
         try:
             # Get the data
-            adata = data_context.get("loaded_data")
+            adata = data_context.get("data")
             
             # Get the raw and filtered counts paths
             raw_counts_path = self.params.get('raw_counts_path')
@@ -54,7 +56,7 @@ class AmbientRNARemoval(AnalysisModule):
                 return False
                 
             # Create R bridge
-            r_bridge = RBridge()
+            r_bridge = RBridge(cleanup=True)
             
             # Prepare arguments for the R script
             args = {
@@ -65,42 +67,82 @@ class AmbientRNARemoval(AnalysisModule):
                 'resolution': self.params.get('resolution', 0.8)
             }
             
-            # Prepare any data to pass to R
-            data = {}
-            
-            # Add optional cluster information if available
-            if 'clusters' in adata.obs:
-                self.logger.info("Using existing cluster assignments")
-                data['clusters'] = adata.obs['clusters'].to_dict()
-            
             # Run the R script
             self.logger.info("Running SoupX with Seurat clustering...")
-            results = r_bridge.run_r_script('run_soupx.R', args, data)
+            success, stdout, stderr = r_bridge.run_r_script('run_soupx.R', args)
             
             # Check if execution was successful
-            if not results.get('success', False):
-                self.logger.error(f"SoupX failed: {results.get('error', 'Unknown error')}")
+            if not success:
+                self.logger.error(f"SoupX failed: {stderr}")
                 return False
             
-            # Log messages from R
-            for msg in results.get('messages', []):
-                self.logger.info(f"SoupX: {msg}")
+            # Log output from R
+            for line in stdout.splitlines():
+                self.logger.info(f"SoupX: {line}")
             
-            # Get the corrected counts
-            corrected_counts = results.get('corrected_counts')
-            if corrected_counts is None:
-                self.logger.error("No corrected counts returned from SoupX")
+            # Get the output filepaths
+            corrected_mtx_path = r_bridge.get_workspace_path('corrected_counts.mtx')
+            metadata_path = r_bridge.get_workspace_path('soupx_metadata.json')
+            features_path = r_bridge.get_workspace_path('features.txt')
+            barcodes_path = r_bridge.get_workspace_path('barcodes.txt')
+
+            if not os.path.exists(corrected_mtx_path):
+                self.logger.error(f"Can not located SoupX-corrected matrix at path: {corrected_mtx_path}")
+                return False
+        
+            if not os.path.exists(metadata_path):
+                self.logger.error(f"Can not located SoupX metadata at path: {metadata_path}")
                 return False
             
-            # Ensure the corrected counts are sparse
-            if not sp.issparse(corrected_counts):
-                corrected_counts = sp.csr_matrix(corrected_counts)
+            if not os.path.exists(features_path):
+                self.logger.error(f"Can not located SoupX features at path: {features_path}")
+                return False
             
+            if not os.path.exists(barcodes_path):
+                self.logger.error(f"Can not located SoupX barcodes at path: {barcodes_path}")
+                return False
+            
+            # Read the metadata
+            with open(metadata_path, 'r') as f:
+                soupx_metadata = json.load(f)
+            
+            # Read the corrected matrix
+            corrected_counts = scipy.io.mmread(corrected_mtx_path)
+
+            # Read row and column names
+            with open(features_path, 'r') as f:
+                features = [line.strip() for line in f]
+            with open(barcodes_path, 'r') as f:
+                barcodes = [line.strip() for line in f]
+
+            # Ensure the matrix dimensions match the feature and barcode lists
+            assert corrected_counts.shape[0] == len(features), "Matrix row count doesn't match features"
+            assert corrected_counts.shape[1] == len(barcodes), "Matrix column count doesn't match barcodes"
+
             # Save the original counts as a layer if not already done
             if 'original' not in adata.layers:
                 self.logger.info("Storing original counts in 'original' layer")
                 adata.layers['original'] = adata.X.copy()
             
+            # Ensure the corrected matrix is aligned with the existing AnnData object
+            adata_barcodes = adata.obs_names.tolist()
+            adata_features = adata.var_names.tolist()
+            # Check for barcode alignment - most critical for single-cell data
+            if barcodes != adata_barcodes:
+                self.logger.info("Aligning cell barcodes between corrected matrix and AnnData object")
+                # Get indices for reordering
+                idx_map = {bc: i for i, bc in enumerate(barcodes)}
+                indices = [idx_map[bc] for bc in adata_barcodes if bc in idx_map]
+                corrected_counts = corrected_counts[:, indices]
+
+            # Check for feature alignment
+            if features != adata_features:
+                self.logger.info("Aligning features between corrected matrix and AnnData object")
+                # Get indices for reordering
+                idx_map = {feat: i for i, feat in enumerate(features)}
+                indices = [idx_map[feat] for feat in adata_features if feat in idx_map]
+                corrected_counts = corrected_counts[indices, :]
+
             # Add the SoupX-corrected counts as a new layer
             self.logger.info("Adding SoupX-corrected counts as 'soupx_corrected' layer")
             adata.layers['soupx_corrected'] = corrected_counts
@@ -114,14 +156,14 @@ class AmbientRNARemoval(AnalysisModule):
             adata.uns['ambient_rna_removed'] = True
             
             # Add some metadata about the process
-            contamination = results.get('contamination_fraction', 0)
+            contamination = soupx_metadata['contamination_fraction']
             self.logger.info(f"Estimated contamination fraction: {contamination}")
             
             adata.uns['ambient_removal'] = {
                 'method': 'SoupX',
                 'modality': self.params.get('modality', 'Gene Expression'),
                 'estimated_contamination': contamination,
-                'clustering': 'seurat' if 'clusters' not in data else 'provided'
+                'clustering': f"Seurat at Res: {self.params.get('resolution', 0.8)} and ndims: {self.params.get('ndims', 30)}"
             }
             
             # No need to update data_context since we modified the existing object

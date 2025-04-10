@@ -14,8 +14,8 @@ class QCMetrics(AnalysisModule):
         self.logger = logging.getLogger(f"Module.{name}")
         
         # Define required inputs and outputs
-        self.required_inputs = ["loaded_data"]
-        self.outputs = ["loaded_data"]  # We'll update the same AnnData object
+        self.required_inputs = ["data"]
+        self.outputs = ["data"]  # We'll update the same AnnData object
         
     def run(self, data_context):
         """

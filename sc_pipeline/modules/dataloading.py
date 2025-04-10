@@ -14,7 +14,7 @@ class DataLoading(AnalysisModule):
 
         # Define required inputs and outputs
         self.required_inputs = []
-        self.outputs = ["loaded_data"]
+        self.outputs = ["data"]
     
     def run(self, data_context):
         """
@@ -45,7 +45,7 @@ class DataLoading(AnalysisModule):
             adata.var_names_make_unique()
 
             # Store in data context
-            data_context.set("loaded_data", adata)
+            data_context.set("data", adata)
 
             self.logger.info(f"Loaded data with shape: {adata.shape}")
             return True
