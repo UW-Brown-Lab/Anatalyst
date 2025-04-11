@@ -1,6 +1,8 @@
 # sc_pipeline/core/module.py
 import os
 
+from sc_pipeline.core.data_context import DataContext
+
 class AnalysisModule:
     """Base class for all analysis modules in the pipeline"""
 
@@ -38,42 +40,41 @@ class AnalysisModule:
         # Work through parameters, apply default values where applicable, and validate against defined types
         for param_name, param_spec in self.PARAMETER_SCHEMA.items():
             if param_name in provided_params:
-                if param_name in provided_params:
-                    param_value = provided_params[param_name]
+                param_value = provided_params[param_name]
 
-                    if 'type' in param_spec and param_value is not None:
-                        expected_type = param_spec['type']
+                if 'type' in param_spec and param_value is not None:
+                    expected_type = param_spec['type']
 
-                        # Handle List parameter type
-                        if expected_type == list and 'element_type' in param_spec:
-                            if not isinstance(param_value, list):
-                                self.logger.warning(
-                                    f"Parameter '{param_name}' should be a list, got {type(param_value).__name__}"
-                                )
-                            else:
-                                element_type = param_spec['element_type']
-                                for i, elem in enumerate(param_value):
-                                    if not isinstance(elem, element_type):
-                                        self.logger.warning(
-                                        f"Element {i} of parameter '{param_name}' should be {element_type.__name__}, "
-                                        f"got {type(elem).__name__}"
-                                    )
-
-                        # Handle everything else
-                        elif not isinstance(param_value, expected_type):
+                    # Handle List parameter type
+                    if expected_type == list and 'element_type' in param_spec:
+                        if not isinstance(param_value, list):
                             self.logger.warning(
-                                f"Parameter '{param_name}' should be {expected_type.__name__}, "
-                                f"got {type(param_value).__name__}"
+                                f"Parameter '{param_name}' should be a list, got {type(param_value).__name__}"
                             )
-                    
-                    validated_params[param_name] = param_value
+                        else:
+                            element_type = param_spec['element_type']
+                            for i, elem in enumerate(param_value):
+                                if not isinstance(elem, element_type):
+                                    self.logger.warning(
+                                    f"Element {i} of parameter '{param_name}' should be {element_type.__name__}, "
+                                    f"got {type(elem).__name__}"
+                                )
 
-                # Apply default if available and no param value was provided
-                elif 'default' in param_spec:
-                    validated_params[param_name] = param_spec['default']
+                    # Handle everything else
+                    elif not isinstance(param_value, expected_type):
+                        self.logger.warning(
+                            f"Parameter '{param_name}' should be {expected_type.__name__}, "
+                            f"got {type(param_value).__name__}"
+                        )
                 
-                elif param_spec.get('required', False):
-                    self.logger.error(f"Required parameter '{param_name}' not provided for module '{self.name}'")
+                validated_params[param_name] = param_value
+
+            # Apply default if available and no param value was provided
+            elif 'default' in param_spec:
+                validated_params[param_name] = param_spec['default']
+            
+            elif param_spec.get('required', False):
+                self.logger.error(f"Required parameter '{param_name}' not provided for module '{self.name}'")
 
             # Check for other unknown parameters being provided
             unknown_params = set(provided_params.keys()) - set(self.PARAMETER_SCHEMA.keys())
@@ -84,7 +85,7 @@ class AnalysisModule:
                 for param in unknown_params:
                     validated_params[param] = provided_params[param]
 
-            return validated_params
+        return validated_params
 
     def run(self, data_context):
         """
@@ -107,10 +108,11 @@ class AnalysisModule:
             "outputs": self.outputs
         }
 
-    def save_figure(self, module_name, fig, figsize=None, name=None, output_dir=None, dpi=300):
+    def save_figure(self, data_context:DataContext, module_name, fig, figsize=None, name=None, output_dir=None, dpi=300):
         """ Save a matplotlib figure to the report images directory
 
         Args:
+            data_context (DataContext): Active pipeline data context
             module_name (str): Name of the module generating the figure.
             fig (Matplotlib figure object): The figure to be saved.
             figsize (tuple): Tuple of (width, height) in inches. If none, uses standardized size.
@@ -122,16 +124,11 @@ class AnalysisModule:
             str: Path to the saved image file
         """
         if output_dir is None:
-            from sc_pipeline.core.executor import current_pipeline
-            if hasattr(current_pipeline, 'data_context'):
-                output_dir = current_pipeline.data_context.get('OUTPUT_DIR', os.getcwd())
-            else:
-                output_dir = os.getcwd()
+                output_dir = data_context.get('OUTPUT_DIR', os.getcwd())
 
         if figsize is None:
-            from sc_pipeline.core.executor import current_pipeline
-            if hasattr(current_pipeline, 'data_context'):
-                fig_settings = current_pipeline.data_context.get('FIGURE_SETTINGS')
+            fig_settings = data_context.get('FIGURE_SETTINGS')
+            if fig_settings:
                 figsize = fig_settings['width'], fig_settings['height']
             else:
                 self.logger.warn(f"Could not retrieve pipeline data context. Proceeding with 8in x 6in...")

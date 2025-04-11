@@ -4,6 +4,7 @@ import logging
 import numpy as np
 import pandas as pd
 import scanpy as sc
+import matplotlib.pyplot as plt
 from sc_pipeline.core.data_context import DataContext
 from sc_pipeline.core.module import AnalysisModule
 
@@ -93,15 +94,18 @@ class QCMetrics(AnalysisModule):
             self.logger.info("QC metrics calculated successfully")
 
             if self.params.get("create_plots"):
-                vln_plot = sc.pl.violin(
+                sc.pl.violin(
                     adata,
                     ["n_genes_by_counts", "total_counts", "pct_counts_mt", "pct_counts_ribo"],
                     jitter=0.4,
-                    multi_panel=True
+                    multi_panel=True,
+                    show=False
                 )
+                vln_plot = plt.gcf()
+
                 fig_title = self.params.get("plot_title", f"{self.name}: Violin Plot")
                 desc = "Plots show the distribution of cells by their number of unique genes, number of UMIs, percentage of features that are mitochondrial, and percentage of features that are ribosomal."
-                img_path = self.save_figure(self.name, vln_plot)
+                img_path = self.save_figure(data_context, self.name, vln_plot)
                 data_context.add_figure(
                     module_name= self.name,
                     title= fig_title,

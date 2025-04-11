@@ -1,4 +1,4 @@
-# sc_pipeline/modules/ambient_removal.py
+# sc_pipeline/modules/ambientrnaremoval.py
 
 import os
 import logging

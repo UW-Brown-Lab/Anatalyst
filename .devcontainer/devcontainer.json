@@ -9,6 +9,7 @@
         "vscode": {
             "extensions": [
                 "ms-python.python",
+                "george-alisson.html-preview-vscode",
                 "REditorSupport.r",
                 "REditorSupport.r-lsp",
                 "NilsJPWerner.autodocstring"

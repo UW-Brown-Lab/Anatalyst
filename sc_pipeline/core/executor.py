@@ -24,6 +24,7 @@ class PipelineExecutor:
 
         # Create the data context
         self.data_context = DataContext(checkpoint_dir)
+        self._set_global_settings()
 
         # Module registry
         self.module_registry = {}
