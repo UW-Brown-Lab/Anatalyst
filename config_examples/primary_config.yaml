@@ -19,7 +19,7 @@ modules:
       ribo_pattern: "^RP[SL]"
 
   - name: SoupX Decontamination
-    type: AmbientRemoval
+    type: AmbientRNARemoval
     params:
       raw_counts_path: ./tests/test_data/10k_PBMC_3p_nextgem_Chromium_Controller_raw_feature_bc_matrix.h5
       filtered_counts_path: ./tests/test_data/10k_PBMC_3p_nextgem_Chromium_Controller_filtered_feature_bc_matrix.h5
@@ -27,6 +27,6 @@ modules:
 
   - name: Report Generator
     type: ReportGenerator
-    
+
       
       

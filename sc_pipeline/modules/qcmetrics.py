@@ -10,7 +10,7 @@ from sc_pipeline.core.module import AnalysisModule
 class QCMetrics(AnalysisModule):
     """Module for calculating quality control metrics."""
 
-    PAREMETER_SCHEMA = {
+    PARAMETER_SCHEMA = {
         'mito_pattern': {
             'type': str,
             'default': '^MT-',
