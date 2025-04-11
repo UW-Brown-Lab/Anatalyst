@@ -4,10 +4,33 @@ import logging
 import numpy as np
 import pandas as pd
 import scanpy as sc
+from sc_pipeline.core.data_context import DataContext
 from sc_pipeline.core.module import AnalysisModule
 
 class QCMetrics(AnalysisModule):
     """Module for calculating quality control metrics."""
+
+    PAREMETER_SCHEMA = {
+        'mito_pattern': {
+            'type': str,
+            'default': '^MT-',
+            'description': 'Regex pattern to identify mitochondrial genes'
+        },
+        'ribo_pattern': {
+            'type': str,
+            'default': '^RP[SL]',
+            'description': 'Regex pattern to identify ribosomal genes'
+        },
+        'create_plots': {
+            'type': bool,
+            'default': True,
+            'description': 'Generate violin plots for key QC metrics'
+        },
+        'plot_title': {
+            'type':str,
+            'description': 'Figure title of created plots in exported report'
+        }
+    }
     
     def __init__(self, name, params):
         super().__init__(name, params)
@@ -17,7 +40,7 @@ class QCMetrics(AnalysisModule):
         self.required_inputs = ["data"]
         self.outputs = ["data"]  # We'll update the same AnnData object
         
-    def run(self, data_context):
+    def run(self, data_context: DataContext):
         """
         Calculate quality control metrics.
         
@@ -29,7 +52,7 @@ class QCMetrics(AnalysisModule):
         """
         try:
             # Get the data
-            adata = data_context.get("loaded_data")
+            adata = data_context.get("data")
             
             self.logger.info("Calculating QC metrics")
             
@@ -66,9 +89,26 @@ class QCMetrics(AnalysisModule):
                 )
                 
             # Update the data context
-            data_context.set("loaded_data", adata)
-            
+            data_context.set("data", adata)
             self.logger.info("QC metrics calculated successfully")
+
+            if self.params.get("create_plots"):
+                vln_plot = sc.pl.violin(
+                    adata,
+                    ["n_genes_by_counts", "total_counts", "pct_counts_mt", "pct_counts_ribo"],
+                    jitter=0.4,
+                    multi_panel=True
+                )
+                fig_title = self.params.get("plot_title", f"{self.name}: Violin Plot")
+                desc = "Plots show the distribution of cells by their number of unique genes, number of UMIs, percentage of features that are mitochondrial, and percentage of features that are ribosomal."
+                img_path = self.save_figure(self.name, vln_plot)
+                data_context.add_figure(
+                    module_name= self.name,
+                    title= fig_title,
+                    description= desc,
+                    image_path= img_path
+                )
+
             return True
             
         except Exception as e:

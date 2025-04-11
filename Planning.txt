@@ -13,4 +13,7 @@ Plotting / Report:
  -  Should each module have the graphics it constructs and any relevant information coded within the module itself...?
        -- We need have a similar level of flexibility in the report as is achievable in the pipeline itself...
 
-    
+Module Parameter validation
+ -  Right now, there is an unimplemented module parameter schema and paramater validation function.
+ -  It feels like this should be validated before pipeline execution... perhaps this should be refactored to the config parser?
+ -  Tabling this for now because it feels like a lower prio issue

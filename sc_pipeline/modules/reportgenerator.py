@@ -4,11 +4,42 @@ import os
 import logging
 import markdown
 import datetime
+import yaml
 from pathlib import Path
 from sc_pipeline.core.module import AnalysisModule
 
 class ReportGenerator(AnalysisModule):
     """Module for generating a markdown report from pipeline results."""
+
+    # NOT ALL OF THESE ARE IMPLEMENTED YET but might be some day who knows
+    PARAMETER_SCHEMA = {
+        'report_file': {
+            'type': str,
+            'default': 'analysis_report.md',
+            'description': 'Filename for the generated markdown report'
+        },
+        'generate_html': {
+            'type': bool,
+            'default': True,
+            'description': 'Whether to also generate an HTML version of the report'
+        },
+        'include_pipeline_info': {
+            'type': bool,
+            'default': True,
+            'description': 'Whether to include pipeline configuration information in the report'
+        },
+        'report_title': {
+            'type': str,
+            'default': None,
+            'description': 'Custom title for the report. If not provided, uses the pipeline name'
+        },
+        'custom_css': {
+            'type': str,
+            'default': None,
+            'description': 'Path to a custom CSS file to use for HTML styling'
+        }
+    }
+
 
     def __init__(self, name, params):
         super().__init__(name, params)
@@ -81,6 +112,7 @@ class ReportGenerator(AnalysisModule):
             ""
         ]
         
+
         # Add figures organized by module
         if not report_figures:
             md.append("No analysis figures were generated during the pipeline run.")
@@ -120,6 +152,22 @@ class ReportGenerator(AnalysisModule):
                 md.append("---")
                 md.append("")
         
+
+        md.append("## Pipeline Configuration")
+        md.append("")
+        md.append("The following configuration was used for this pipeline run:")
+        md.append("")
+        md.append("```yaml")
+        try:
+            config_yaml = yaml.dump(pipeline_config, default_flow_style=False, sort_keys=False)
+            md.append(config_yaml)
+        except Exception as e:
+            self.logger.error(f"Error dumping config to YAML: {e}")
+            md.append("# Error: Could not generate YAML configuration")
+            
+        md.append("```")
+        md.append("")
+
         return "\n".join(md)
     
     def _generate_html(self, md_content, html_path):

@@ -1,17 +1,32 @@
 pipeline:
-  name: minimal_qc_pipeline
+  name: Brown Lab Development Test Pipeline
   output_dir: ./output
+  r_memory_limit_gb: 8
+  figure_defaults:
+    width: 8
+    height: 6
   
 modules:
-  - name: data_loading
+  - name: Load Data
     type: DataLoading
     params:
-      file_path: /path/to/sample_filtered_feature_bc_matrix.h5
+      file_path: ./tests/test_data/10k_PBMC_3p_nextgem_Chromium_Controller_filtered_feature_bc_matrix.h5
       
-  - name: qc_metrics
+  - name: Pre-filtering QC Metrics
     type: QCMetrics
     params:
       mito_pattern: "^MT-"
       ribo_pattern: "^RP[SL]"
+
+  - name: SoupX Decontamination
+    type: AmbientRemoval
+    params:
+      raw_counts_path: ./tests/test_data/10k_PBMC_3p_nextgem_Chromium_Controller_raw_feature_bc_matrix.h5
+      filtered_counts_path: ./tests/test_data/10k_PBMC_3p_nextgem_Chromium_Controller_filtered_feature_bc_matrix.h5
+      ndims: 20
+
+  - name: Report Generator
+    type: ReportGenerator
+    
       
       

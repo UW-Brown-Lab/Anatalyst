@@ -8,6 +8,15 @@ class DataLoading(AnalysisModule):
     Module for loading aligned data.
     Currently supports only 10X sample_filtered_feature_bc_matrix.h5
     """
+
+    PARAMETER_SCHEMA = {
+        'file_path': {
+            'type': str,
+            'required': True,
+            'description': 'Path to the 10X h5 file'
+        }
+    }
+
     def __init__(self, name, params):
         super().__init__(name,params)
         self.logger = logging.getLogger(f"Module.{name}")

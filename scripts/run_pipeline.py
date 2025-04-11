@@ -1,10 +1,17 @@
 # sc_pipeline/scripts/run_pipeline.py
-
 import argparse
 from ast import parse
 import logging
 import os
 import sys
+
+# TEMPORARY TO ALLOW RUNNING WHOLE PIPELINE
+#   "nothing more permanent than a temporary solution"
+# Add the project root directory to the path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+#################################################
+
+
 from sc_pipeline.core.executor import PipelineExecutor
 
 def setup_logging(log_file=None, log_level=logging.INFO):

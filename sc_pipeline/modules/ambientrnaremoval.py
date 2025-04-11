@@ -14,6 +14,39 @@ from sc_pipeline.utils.r_bridge import RBridge
 class AmbientRNARemoval(AnalysisModule):
     """Module for removing ambient RNA contamination using SoupX."""
     
+    PARAMETER_SCHEMA = {
+        'raw_counts_path': {
+            'type': str,
+            'required': True,
+            'description': 'Path to the raw counts h5 file'
+        },
+        'filtered_counts_path': {
+            'type': str,
+            'required': True,
+            'description': 'Path to the filtered counts h5 file'
+        },
+        'modality': {
+            'type': str,
+            'default': 'Gene Expression',
+            'description': 'Modality to use from the data'
+        },
+        'ndims': {
+            'type': int,
+            'default': 30,
+            'description': 'Number of dimensions to use for the PCA'
+        },
+        'resolution': {
+            'type': float,
+            'default': 0.8,
+            'description': 'Resolution for Seurat clustering'
+        },
+        'replace_main_matrix': {
+            'type': bool,
+            'default': True,
+            'description': 'Whether to replace the main matrix with the corrected counts'
+        }
+    }
+
     def __init__(self, name, params):
         super().__init__(name, params)
         self.logger = logging.getLogger(f"Module.{name}")
