@@ -16,7 +16,7 @@ dependencies:
   - scikit-learn
   - pyyaml
   - pip
-  - r-base=4.4
+  - r-base=4.1
   - r-matrix
   - r-yaml
   - r-devtools
@@ -27,5 +27,4 @@ dependencies:
   - bioconductor-singlecellexperiment
   - r-rcpp
   - bioconductor-biocparallel
-  - pip:
-    - git+https://github.com/constantAmateur/SoupX.git
+  - r-soupx
