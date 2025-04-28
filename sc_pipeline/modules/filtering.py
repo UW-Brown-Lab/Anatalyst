@@ -42,7 +42,7 @@ class FilterManager:
         if not inplace:
             adata = adata.copy()
 
-            original_cells = adata.n_obs
+        original_cells = adata.n_obs
 
         metric: str
         config: dict
@@ -283,6 +283,10 @@ class FilterManager:
             outlier = outlier | (values > median + nmads * mad)
             
         return outlier
+
+    def get_filter_stats(self):
+        """Return the filtering statistics"""
+        return self.filter_stats
 
 class Filtering(AnalysisModule):
     """

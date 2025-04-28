@@ -25,6 +25,23 @@ modules:
       filtered_counts_path: ./tests/test_data/10k_PBMC_3p_nextgem_Chromium_Controller_filtered_feature_bc_matrix.h5
       ndims: 20
 
+  - name: Filter Outliers
+    type: Filtering
+    params:
+      n_genes_by_counts:
+        type: numeric
+        outlier_detection: true
+      total_counts:
+        type: numeric
+        outlier_detection: true
+      pct_counts_mt:
+        type: numeric
+        outlier_detection: true
+        two_sided: false
+      predicted_doublet:
+        type: boolean
+        keep: false
+
   - name: Report Generator
     type: ReportGenerator
 
