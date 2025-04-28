@@ -4,16 +4,6 @@ Notes on how modules should work:
         - Optionally, output for specific steps could also be saved (mem management?)
  -  Should these modules input/outputs optionally be overwritable? Or is this overengineering...
 
-Plotting / Report:
- -  Plotting with this modular flow remains a challenge...
- -  Perhaps write to a consistent key in DataContext such as "plotting", 
-    appending a structured Title, Caption, Graphic structure, eventually stitched together by some plotting module?
- -  Alternatively, use a Mark Berres styled approach and output to an html that pulls local graphics? This would probably be harder, but perhaps more flexible?
-       -- Has the strength of all graphics being pre-exported as png
- -  Should each module have the graphics it constructs and any relevant information coded within the module itself...?
-       -- We need have a similar level of flexibility in the report as is achievable in the pipeline itself...
-
 Module Parameter validation
- -  Right now, there is an unimplemented module parameter schema and paramater validation function.
  -  It feels like this should be validated before pipeline execution... perhaps this should be refactored to the config parser?
- -  Tabling this for now because it feels like a lower prio issue
+ -  Tabling this for now because it feels like a lower prio issue.

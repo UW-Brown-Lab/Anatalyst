@@ -1,4 +1,4 @@
-# sc_pipeline/modules/report_generator.py
+# sc_pipeline/modules/reportgenerator.py
 
 import os
 import logging

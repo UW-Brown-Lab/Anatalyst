@@ -1,4 +1,4 @@
-# sc_pipeline/modules/qc_metrics.py
+# sc_pipeline/modules/qcmetrics.py
 
 import logging
 import numpy as np
