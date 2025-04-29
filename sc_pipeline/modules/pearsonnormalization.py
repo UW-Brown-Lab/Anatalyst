@@ -9,20 +9,10 @@ class PearsonResidualsNormalization(AnalysisModule):
     """Module for normalizing data using Pearson residuals method."""
 
     PARAMETER_SCHEMA = {
-        'n_top_genes': {
-            'type': int,
-            'default': 2000,
-            'description': 'Number of highly variable genes to keep'
-        },
         'theta': {
             'type': float,
             'default': 100,
             'description': 'Overdispersion parameter for the negative binomial model'
-        },
-        'chunk_size': {
-            'type': int,
-            'default': 1000,
-            'description': 'Chunk size for processing large datasets'
         },
         'use_highly_variable': {
             'type': bool,
@@ -64,9 +54,7 @@ class PearsonResidualsNormalization(AnalysisModule):
             adata = data_context.get("data")
             
             # Get parameters
-            n_top_genes = self.params.get('n_top_genes', 2000)
             theta = self.params.get('theta', 100)
-            chunk_size = self.params.get('chunk_size', 1000)
             use_highly_variable = self.params.get('use_highly_variable', True)
             layer_key = self.params.get('layer_key', None)
             
@@ -78,14 +66,12 @@ class PearsonResidualsNormalization(AnalysisModule):
                 self.logger.info("Using main matrix for normalization")
                 X = adata.X
             
-            self.logger.info(f"Computing Pearson residuals with theta={theta}, n_top_genes={n_top_genes}")
+            self.logger.info(f"Computing Pearson residuals with theta={theta}")
             
             # Apply Pearson residuals normalization
             sc.experimental.pp.normalize_pearson_residuals(
                 adata,
                 theta=theta,
-                chunk_size=chunk_size,
-                n_top_genes=n_top_genes if use_highly_variable else None,
                 layer=layer_key
             )
             
