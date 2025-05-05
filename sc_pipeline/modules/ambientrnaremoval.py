@@ -159,9 +159,9 @@ class AmbientRNARemoval(AnalysisModule):
                 self.logger.info(f"New shape after transposition: {corrected_counts.shape}")
 
             # Save the original counts as a layer if not already done
-            if 'original' not in adata.layers:
+            if 'raw' not in adata.layers:
                 self.logger.info("Storing original counts in 'original' layer")
-                adata.layers['original'] = adata.X.copy()
+                adata.layers['raw'] = adata.X.copy()
 
             # Add the SoupX-corrected counts as a new layer
             self.logger.info("Adding SoupX-corrected counts as 'soupx_corrected' layer")
