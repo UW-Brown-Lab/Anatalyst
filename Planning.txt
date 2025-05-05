@@ -1,9 +1,0 @@
-Notes on how modules should work:
- -  Define inputs and outputs
- -  idea: For workflow-type pipelines, there should be a persistent data object that keeps getting updated
-        - Optionally, output for specific steps could also be saved (mem management?)
- -  Should these modules input/outputs optionally be overwritable? Or is this overengineering...
-
-Module Parameter validation
- -  It feels like this should be validated before pipeline execution... perhaps this should be refactored to the config parser?
- -  Tabling this for now because it feels like a lower prio issue.
