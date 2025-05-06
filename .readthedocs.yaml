@@ -51,4 +51,3 @@ python:
     # Install the package itself
     - method: pip
       path: .
-  system_packages: true
