@@ -4,25 +4,28 @@
 # Make the script exit on any error
 set -e
 
+# Create user R library directory
+USER_R_DIR="$HOME/R/library"
+mkdir -p "$USER_R_DIR"
+
+# Set R library path
+export R_LIBS_USER="$USER_R_DIR"
+
+echo "Installing R packages to $USER_R_DIR"
+
 # Install BiocManager first
-Rscript -e "install.packages('BiocManager', repos='https://cloud.r-project.org/')"
+Rscript -e "install.packages('BiocManager', repos='https://cloud.r-project.org/', lib='$USER_R_DIR')"
 
 # Install required Bioconductor dependencies 
-Rscript -e "BiocManager::install(c('BiocVersion', 'BiocStyle'))"
+Rscript -e "BiocManager::install(c('BiocVersion', 'BiocStyle'), lib='$USER_R_DIR')"
 
-# Install CRAN packages
-Rscript -e "install.packages(c('remotes', 'tidyverse', 'devtools', 'Matrix', 'ggplot2', 'dplyr', 'readr'), repos='https://cloud.r-project.org/', dependencies=TRUE)"
+# Install minimal set of packages needed for documentation
+Rscript -e "install.packages(c('Matrix', 'jsonlite'), repos='https://cloud.r-project.org/', lib='$USER_R_DIR')"
 
-# Install Bioconductor packages 
-Rscript -e "BiocManager::install(c('SingleCellExperiment', 'scater', 'scran', 'DropletUtils', 'GenomicFeatures', 'DelayedArray'))"
+# Install bare minimum Bioconductor packages needed for documentation
+Rscript -e "BiocManager::install(c('DropletUtils', 'SoupX'), lib='$USER_R_DIR')"
 
-# Install Seurat (from CRAN, not Bioconductor)
-Rscript -e "install.packages('Seurat', repos='https://cloud.r-project.org/', dependencies=TRUE)"
-
-# Install SoupX
-Rscript -e "install.packages('SoupX', repos='https://cloud.r-project.org/', dependencies=TRUE)"
-
-# Install glmGamPoi and presto for speed
-Rscript -e "BiocManager::install(c('glmGamPoi','presto'))"
+# Install minimal version of Seurat (may still take a while)
+Rscript -e "install.packages('Seurat', repos='https://cloud.r-project.org/', lib='$USER_R_DIR', dependencies=FALSE)"
 
 echo "R dependencies installation completed successfully"
