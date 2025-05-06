@@ -12,6 +12,8 @@ chmod +x setup_r_deps.sh
 # Run the R dependencies setup if R is available
 if command -v R &> /dev/null; then
     echo "Installing R dependencies..."
+    # Create .Renviron file to set R library path
+    echo "R_LIBS_USER='$HOME/R/library'" > $HOME/.Renviron
     ./setup_r_deps.sh
 else
     echo "R is not installed, skipping R dependencies."
