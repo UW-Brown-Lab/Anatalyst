@@ -1,6 +1,6 @@
 {
     "name": "downstream-scrnaseq",
-    "image": "ghcr.io/wblashka/downstream-scrnaseq:1.5",
+    "image": "ghcr.io/wblashka/downstream-scrnaseq:latest",
     "mounts":[
         "source=${localWorkspaceFolder},target=/workspace,type=bind"
     ],
