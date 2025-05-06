@@ -61,7 +61,7 @@ class PearsonResidualsNormalizationTest(unittest.TestCase):
         
         # Create the module with default parameters
         module = PearsonResidualsNormalization('pearson_normalization', {
-            'theta': 100,
+            'theta': 100.0,
             'use_highly_variable': True,
             'create_plots': False  # Disable plotting for testing
         })

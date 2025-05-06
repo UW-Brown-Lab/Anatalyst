@@ -5,9 +5,24 @@
 
 import os
 import sys
+from unittest.mock import MagicMock
 
 # Add the project root directory to the path so Sphinx can find your modules
 sys.path.insert(0, os.path.abspath('../..'))
+
+# Mock modules that might not be installed during documentation generation
+# This is helpful for modules with C dependencies or other complex requirements
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+MOCK_MODULES = [
+    'scanpy', 'scanpy.pp', 'scanpy.tl', 'scanpy.pl', 'scanpy.experimental',
+    'numpy', 'pandas', 'matplotlib', 'matplotlib.pyplot', 
+    'scipy', 'scipy.sparse', 'scipy.io', 'scipy.stats',
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # -- Project information -----------------------------------------------------
 project = 'Brown Lab Downstream Pipeline'
