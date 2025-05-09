@@ -92,12 +92,6 @@ RUN python3.11 -m pip install --no-cache-dir \
     ipykernel \
     rpy2 \
     markdown
-
-RUN python3.11 -m pip install --no-cache-dir \
-    sphinx \
-    sphinx-rtd-theme \
-    sphinx-autodoc-typehints \
-    myst-parser
     
 # Install BiocManager first
 RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org/')"
