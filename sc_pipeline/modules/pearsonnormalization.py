@@ -7,7 +7,7 @@ import numpy as np
 from sc_pipeline.core.module import AnalysisModule
 from sc_pipeline.utils.adata_utils import set_active_layer, save_layer
 
-class PearsonResidualsNormalization(AnalysisModule):
+class PearsonNormalization(AnalysisModule):
     """
     Module for normalizing data using Pearson residuals method.
     

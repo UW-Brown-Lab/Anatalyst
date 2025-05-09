@@ -10,20 +10,23 @@ from .data_context import DataContext
 class PipelineExecutor:
     """Executes the pipeline based on the configuration."""
 
-    def __init__(self, config_file, checkpoint_dir=None):
+    def __init__(self, config_file):
         self.logger = logging.getLogger("PipelineExecutor")
 
         # Parse the configuration
         parser = ConfigParser()
         self.config = parser.parse(config_file)
 
-        # Set up the checkpoint directory
-        if checkpoint_dir is None:
-            output_dir = self.config['pipeline']['output_dir']
-            checkpoint_dir = os.path.join(output_dir, 'checkpoints')
+        output_dir = self.config['pipeline']['output_dir']
+
+        # Checkpoint settings
+        checkpoint_config = self.config['pipeline'].get('checkpointing',{})
+        checkpoint_dir = checkpoint_config.get('checkpoint_dir') or os.path.join(output_dir, 'checkpoints')
+        self.modules_to_checkpoint = checkpoint_config.get('modules_to_checkpoint', 'all')
+        max_checkpoints = checkpoint_config.get('max_checkpoints', 1)
 
         # Create the data context
-        self.data_context = DataContext(checkpoint_dir)
+        self.data_context = DataContext(checkpoint_dir, max_checkpoints)
         self._set_global_settings()
 
         # Module registry
@@ -90,15 +93,29 @@ class PipelineExecutor:
         # Get the module configurations
         module_configs = self.config['modules']
 
-        # If starting from a checkpoint, skip modules until we reach the checkpoint
+        # If starting from a checkpoint, skip modules up to and including the checkpoint
+        start_index = 0
         if start_from:
             for i, module_config in enumerate(module_configs):
                 if module_config['name'] == start_from:
-                    module_configs = module_configs[i:]
+                    # Start with the NEXT module after the checkpoint
+                    start_index = i + 1
+                    self.logger.info(f"Resuming execution from module #{start_index+1} (after '{start_from}')")
                     break
+            
+            # Check if we found the module
+            if start_index == 0 and start_from is not None:
+                self.logger.error(f"Checkpoint module '{start_from}' not found in configuration")
+                return False
+                
+            # Check if we're at the end of the pipeline
+            if start_index >= len(module_configs):
+                self.logger.info(f"All modules have been executed. Pipeline is complete.")
+                return True
         
         # Execute each module in sequence
-        for module_config in module_configs:
+        for i in range(start_index, len(module_configs)):
+            module_config = module_configs[i]
             module_name = module_config['name']
             module_type = module_config['type']
             module_params = module_config.get('params', {})
@@ -119,7 +136,20 @@ class PipelineExecutor:
                 # Run the module
                 success = module.run(self.data_context)
 
-                if not success:
+                # Check for checkpointing
+                should_checkpoint = (
+                    self.modules_to_checkpoint == 'all' or
+                    module_name in self.modules_to_checkpoint
+                )
+
+
+                if success:
+                    self.logger.info(f"Creating checkpoint after module: {module_name}")
+                    self.data_context.save_checkpoint(module_name)
+                    if should_checkpoint:
+                        self.logger.info(f"Creating checkpoint after module: {module_name}")
+                        self.data_context.save_checkpoint(module_name)
+                else:
                     self.logger.error(f"Module {module_name} failed.")
                     return False
                 
@@ -128,9 +158,9 @@ class PipelineExecutor:
                     missing = [output_name for output_name in module.outputs if output_name not in self.data_context]
                     self.logger.error(f"Module {module_name} failed to produce outputs: {missing}")
                     return False
-            
             except Exception as e:
                 self.logger.error(f"Error in module {module_name}: {e}", exc_info=True)
+                return False
             
         self.logger.info("Pipeline completed successfully.")
         return True

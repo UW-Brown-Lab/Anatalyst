@@ -320,7 +320,12 @@ class Filtering(AnalysisModule):
                     'outlier_detection': True,
                     'remove_outliers': True,
                     'two_sided': True
+                },
+                'predicted_doublet':{
+                    'type':'boolean',
+                    'keep': False
                 }
+
             },
             'description': 'Dictionary of filters to apply, each labeled according to their type and method.'
         },
@@ -452,9 +457,11 @@ class Filtering(AnalysisModule):
             self.logger.error(f"Error filtering cells: {e}", exc_info=True)
             return False
             
-    def _create_plots(self, adata, metrics, data_context):
+    def _create_plots(self, adata, data_context, metrics=None):
         """Create plots showing the filtering results."""
         # Create a violin plot of the metrics after filtering
+        if metrics is None:
+            metrics = list(self.params.get('filters',{}).keys())
         if len(metrics) > 0:
             available_metrics = [m for m in metrics if m in adata.obs.columns]
             if available_metrics:
@@ -469,7 +476,7 @@ class Filtering(AnalysisModule):
                 plt.tight_layout()
                 
                 # Save the figure
-                img_path = self.save_figure(self.name, fig, name="qc_after_filtering")
+                img_path = self.save_figure(data_context, self.name, fig, name="qc_after_filtering")
                 
                 # Add to report
                 data_context.add_figure(
@@ -500,7 +507,7 @@ class Filtering(AnalysisModule):
                     plt.tight_layout()
                     
                     # Save the figure
-                    img_path = self.save_figure(self.name, fig, name="cells_removed_by_filter")
+                    img_path = self.save_figure(data_context, self.name, fig, name="cells_removed_by_filter")
                     
                     # Add to report
                     data_context.add_figure(

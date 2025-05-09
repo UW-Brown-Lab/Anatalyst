@@ -91,7 +91,8 @@ RUN python3.11 -m pip install --no-cache-dir \
     jupyterlab \
     ipykernel \
     rpy2 \
-    markdown
+    markdown \
+    scikit-image
     
 # Install BiocManager first
 RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org/')"

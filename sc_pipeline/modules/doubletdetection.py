@@ -14,16 +14,6 @@ class DoubletDetection(AnalysisModule):
             'default': 0.05,
             'description': 'The expected doublet rate'
         },
-        'min_counts': {
-            'type': int,
-            'default': 3,
-            'description': 'Minimum number of counts for a gene to be used'
-        },
-        'min_cells': {
-            'type': int,
-            'default': 3,
-            'description': 'Minimum number of cells for a gene to be used'
-        },
         'n_neighbors': {
             'type': int,
             'default': 30,
@@ -80,8 +70,6 @@ class DoubletDetection(AnalysisModule):
             sc.pp.scrublet(
                 adata,
                 expected_doublet_rate=self.params.get('expected_doublet_rate', 0.05),
-                min_counts=self.params.get('min_counts', 3),
-                min_cells=self.params.get('min_cells', 3),
                 n_neighbors=self.params.get('n_neighbors', 30),
                 sim_doublet_ratio=self.params.get('sim_doublet_ratio', 2.0)
             )
@@ -94,7 +82,7 @@ class DoubletDetection(AnalysisModule):
             # Create plot if requested
             if self.params.get('create_plots', True):
                 fig = sc.pl.scrublet_score_distribution(adata, return_fig=True)
-                img_path = self.save_figure(self.name, fig)
+                img_path = self.save_figure(data_context, self.name, fig)
                 
                 data_context.add_figure(
                     module_name=self.name,

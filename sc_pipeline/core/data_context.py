@@ -10,9 +10,10 @@ class DataContext:
     Provides checkpoint capabilities
     """
 
-    def __init__(self, checkpoint_dir=None):
+    def __init__(self, checkpoint_dir=None, max_checkpoints=1):
         self._data = {}
         self.checkpoint_dir = checkpoint_dir
+        self.max_checkpoints = max_checkpoints
 
         if checkpoint_dir and not os.path.exists(checkpoint_dir):
             os.makedirs(checkpoint_dir)
@@ -46,6 +47,7 @@ class DataContext:
             with open(checkpoint_path, 'wb') as f:
                 pickle.dump(self._data, f)
             self.logger.info(f"Saved checkpoint: {checkpoint_path}")
+            self.cleanup_old_checkpoints()
             return True
         except Exception as e:
             self.logger.error(f"Failed to save checkpoint: {e}")
@@ -96,3 +98,27 @@ class DataContext:
             'image_path': image_path,
             'caption': caption
         })
+
+    def cleanup_old_checkpoints(self):
+        """Remove old checkpoints if we have more than max_checkpoints"""
+        if not self.checkpoint_dir:
+            return
+            
+        checkpoints = []
+        for filename in os.listdir(self.checkpoint_dir):
+            if filename.endswith('.pkl'):
+                checkpoint_path = os.path.join(self.checkpoint_dir, filename)
+                created_time = os.path.getctime(checkpoint_path)
+                checkpoints.append((checkpoint_path, created_time))
+        
+        # Sort by creation time (oldest first)
+        checkpoints.sort(key=lambda x: x[1])
+        
+        # Remove oldest checkpoints if we have too many
+        while len(checkpoints) > self.max_checkpoints:
+            oldest_path, _ = checkpoints.pop(0)
+            try:
+                os.remove(oldest_path)
+                self.logger.info(f"Removed old checkpoint: {oldest_path}")
+            except Exception as e:
+                self.logger.warning(f"Failed to remove old checkpoint {oldest_path}: {e}")
