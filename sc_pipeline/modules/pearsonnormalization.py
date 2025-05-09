@@ -4,6 +4,7 @@ import logging
 import scanpy as sc
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.sparse as sp
 from sc_pipeline.core.module import AnalysisModule
 from sc_pipeline.utils.adata_utils import set_active_layer, save_layer
 
@@ -109,9 +110,17 @@ class PearsonNormalization(AnalysisModule):
                 inplace=True
             )
             
-            # Add residuals as a layer
+            # Because of HVG selection, the pearson_residuals matrix is a different size than the adata
+            # To fix this, we can make a full size sparse matrix, setting non HVGs to zero -- CHECK WITH FINN TO SEE IF THIS ALTERS ANY DOWNSTREAM ANALYSIS?
+            hvg_indices = [adata.var_names.get_loc(gene) for gene in adata.uns['pearson_residuals_normalization']['pearson_residuals_df'].columns]
+            # Create a full-size sparse matrix filled with zeros
+            full_residuals = sp.csr_matrix((adata.n_obs, adata.n_vars), dtype=float)
             pearson_data = adata.uns['pearson_residuals_normalization']['pearson_residuals_df']
-            adata = save_layer(adata, name="pearson_residuals", data=pearson_data, make_active=True) 
+            for i, idx in enumerate(hvg_indices):
+                full_residuals[:, idx] = pearson_data.iloc[:, i].values.reshape(-1, 1)
+
+            # Add residuals as a layer
+            adata = save_layer(adata, name="pearson_residuals", data=full_residuals, make_active=True) 
             
             # Create visualization if requested
             if self.params.get('create_plots', True):

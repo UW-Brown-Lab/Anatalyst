@@ -78,7 +78,7 @@ class DimensionalityReduction(AnalysisModule):
         },
         'neighbors_key': {
             'type': str,
-            'default': 'neighbors',
+            'default': None,
             'description': 'Key to store neighborhood graph in adata.uns'
         },
         
@@ -145,7 +145,7 @@ class DimensionalityReduction(AnalysisModule):
             pca_key = self.params.get('pca_key', 'X_pca')
             umap_key = self.params.get('umap_key', 'X_umap')
             tsne_key = self.params.get('tsne_key', 'X_tsne')
-            neighbors_key = self.params.get('neighbors_key', 'neighbors')
+            neighbors_key = self.params.get('neighbors_key', None)
             
             # Store key names for reference
             adata.uns['dim_reduction_keys'] = {
@@ -236,7 +236,7 @@ class DimensionalityReduction(AnalysisModule):
                     n_pcs=n_pcs, 
                     random_state=random_state,
                     use_rep=pca_key,
-                    key=neighbors_key
+                    key_added=neighbors_key
                 )
             elif neighbors_needed and neighbors_exist:
                 self.logger.info(f"Using existing neighborhood graph from '{neighbors_key}'")
@@ -254,7 +254,7 @@ class DimensionalityReduction(AnalysisModule):
                         random_state=random_state, 
                         neighbors_key=neighbors_key,
                         copy=False,
-                        key=umap_key_short
+                        key_added=umap_key_short
                     )
                 else:
                     self.logger.info(f"Using existing UMAP embedding from '{umap_key}'")
@@ -271,9 +271,8 @@ class DimensionalityReduction(AnalysisModule):
                         adata, 
                         n_pcs=n_pcs, 
                         random_state=random_state,
-                        neighbors_key=neighbors_key,
                         copy=False,
-                        key=tsne_key_short
+                        key_added=tsne_key_short
                     )
                 else:
                     self.logger.info(f"Using existing t-SNE embedding from '{tsne_key}'")
