@@ -346,7 +346,7 @@ class Filtering(AnalysisModule):
         },
         'layer_key':{
             'type':str,
-            'description':'Layer of anndata to use for metrics',
+            'description':'If provided, use this layer instead of .X',
             'default':None
         }
     }
@@ -407,8 +407,8 @@ class Filtering(AnalysisModule):
 
             # Set active layer if specified:
             layer_key = self.params.get('layer_key',None)
-            if layer_key:
-                adata = set_active_layer(adata, layer_key)
+            if layer_key and layer_key in adata.layers:
+               adata = set_active_layer(adata, layer_key)
             
             # Store original counts
             original_cells = adata.n_obs

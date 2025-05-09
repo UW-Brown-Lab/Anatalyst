@@ -5,6 +5,7 @@ import scanpy as sc
 import matplotlib.pyplot as plt
 import numpy as np
 from sc_pipeline.core.module import AnalysisModule
+from sc_pipeline.utils.adata_utils import set_active_layer, save_layer
 
 class PearsonResidualsNormalization(AnalysisModule):
     """
@@ -43,7 +44,7 @@ class PearsonResidualsNormalization(AnalysisModule):
         },
         'random_state': {
             'type': int,
-            'default': 42,
+            'default': 0,
             'description': 'Random seed for PCA'
         },
         'layer_key': {
@@ -86,23 +87,18 @@ class PearsonResidualsNormalization(AnalysisModule):
             n_top_genes = self.params.get('n_top_genes', 2000)
             batch_key = self.params.get('batch_key', None)
             n_comps = self.params.get('n_comps', 50)
-            random_state = self.params.get('random_state', 42)
+            random_state = self.params.get('random_state', 0)
             layer_key = self.params.get('layer_key', None)
             
             # Log the parameters
-            self.logger.info(f"Computing Pearson residuals with theta={theta}, n_top_genes={n_top_genes}, n_comps={n_comps}")
-            
-            # Create a copy of adata with the specified layer as X if needed
+            self.logger.info(f"Computing Pearson residuals with theta={theta}, clip={clip} , n_top_genes={n_top_genes}, n_comps={n_comps}")
+
             if layer_key and layer_key in adata.layers:
-                self.logger.info(f"Using layer '{layer_key}' for normalization")
-                adata_use = adata.copy()
-                adata_use.X = adata.layers[layer_key].copy()
-            else:
-                adata_use = adata
+                adata = set_active_layer(adata, layer_key) 
             
             # Apply Pearson residuals normalization using the recipe approach
             sc.experimental.pp.recipe_pearson_residuals(
-                adata_use,
+                adata,
                 theta=theta,
                 clip=clip,
                 n_top_genes=n_top_genes,
@@ -113,61 +109,9 @@ class PearsonResidualsNormalization(AnalysisModule):
                 inplace=True
             )
             
-            # Transfer the results back to the original adata if we used a copy
-            if layer_key and layer_key in adata.layers:
-                # Copy the highly variable genes selection
-                adata.var['highly_variable'] = adata_use.var['highly_variable']
-                adata.var['highly_variable_rank'] = adata_use.var['highly_variable_rank']
-                
-                if batch_key:
-                    adata.var['highly_variable_nbatches'] = adata_use.var['highly_variable_nbatches']
-                    adata.var['highly_variable_intersection'] = adata_use.var['highly_variable_intersection']
-                
-                # Copy the PCA results
-                adata.obsm['X_pca'] = adata_use.obsm['X_pca'].copy()
-                adata.varm['PCs'] = adata_use.varm['PCs'].copy()
-                adata.uns['pca'] = adata_use.uns['pca'].copy()
-                
-                # Copy the Pearson residuals normalization metadata
-                adata.uns['pearson_residuals_normalization'] = adata_use.uns['pearson_residuals_normalization'].copy()
-                
-                # Store the pre normalization X matrix in a layer if not already stored
-                if 'pre_normalized' not in adata.layers:
-                    adata.layers['pre_normalized'] = adata.X.copy()
-                
-                # Create a layer for the Pearson residuals
-                hvg_mask = adata.var['highly_variable']
-                if 'pearson_residuals' in adata_use.uns['pearson_residuals_normalization']:
-                    residuals_df = adata_use.uns['pearson_residuals_normalization']['pearson_residuals_df']
-                    
-                    # Create a sparse matrix with the same shape as X
-                    from scipy import sparse
-                    import pandas as pd
-                    
-                    # Create a new sparse matrix with zeros
-                    if sparse.issparse(adata.X):
-                        pearson_matrix = sparse.csr_matrix(adata.X.shape, dtype=np.float32)
-                    else:
-                        pearson_matrix = np.zeros(adata.X.shape, dtype=np.float32)
-                    
-                    # Fill in the values for highly variable genes
-                    for gene_idx, is_hvg in enumerate(hvg_mask):
-                        if is_hvg:
-                            gene_name = adata.var_names[gene_idx]
-                            if gene_name in residuals_df.columns:
-                                if sparse.issparse(pearson_matrix):
-                                    for cell_idx, value in enumerate(residuals_df[gene_name]):
-                                        pearson_matrix[cell_idx, gene_idx] = value
-                                else:
-                                    pearson_matrix[:, gene_idx] = residuals_df[gene_name].values
-                    
-                    # Store as a new layer
-                    adata.layers['pearson_residuals'] = pearson_matrix
-            
-            # Log the results
-            n_hvgs = adata.var['highly_variable'].sum()
-            self.logger.info(f"Identified {n_hvgs} highly variable genes")
-            self.logger.info(f"Computed {n_comps} principal components")
+            # Add residuals as a layer
+            pearson_data = adata.uns['pearson_residuals_normalization']['pearson_residuals_df']
+            adata = save_layer(adata, name="pearson_residuals", data=pearson_data, make_active=True) 
             
             # Create visualization if requested
             if self.params.get('create_plots', True):

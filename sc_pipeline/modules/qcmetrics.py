@@ -33,7 +33,7 @@ class QCMetrics(AnalysisModule):
         },
         'layer_key':{
             'type':str,
-            'description':'Layer of anndata to use for metrics',
+            'description':'If provided, use this layer instead of .X',
             'default':None
         }
     }
