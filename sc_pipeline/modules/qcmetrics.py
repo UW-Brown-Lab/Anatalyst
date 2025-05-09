@@ -30,6 +30,11 @@ class QCMetrics(AnalysisModule):
         'plot_title': {
             'type':str,
             'description': 'Figure title of created plots in exported report'
+        },
+        'layer_key':{
+            'type':str,
+            'description':'Layer of anndata to use for metrics',
+            'default':None
         }
     }
     
@@ -62,7 +67,8 @@ class QCMetrics(AnalysisModule):
                 adata, 
                 inplace=True, 
                 percent_top=None, 
-                log1p=False
+                log1p=False,
+                layer= self.params.get('layer_key',None)
             )
             
             # Calculate mitochondrial gene percentage
@@ -74,7 +80,8 @@ class QCMetrics(AnalysisModule):
                     qc_vars=['mt'], 
                     percent_top=None, 
                     log1p=False, 
-                    inplace=True
+                    inplace=True,
+                    layer= self.params.get('layer_key',None)
                 )
                 
             # Calculate ribosomal gene percentage
@@ -86,7 +93,8 @@ class QCMetrics(AnalysisModule):
                     qc_vars=['ribo'], 
                     percent_top=None, 
                     log1p=False, 
-                    inplace=True
+                    inplace=True,
+                    layer= self.params.get('layer_key',None)
                 )
                 
             # Update the data context

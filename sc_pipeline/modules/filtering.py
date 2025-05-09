@@ -1,7 +1,5 @@
 # sc_pipeline/modules/filtering.py
 
-#### WIP NEEDS SOME TLC
-
 import logging
 from unicodedata import numeric
 from anndata import AnnData
@@ -12,6 +10,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import median_abs_deviation
 from sc_pipeline.core.data_context import DataContext
 from sc_pipeline.core.module import AnalysisModule
+from sc_pipeline.utils.adata_utils import set_active_layer
 
 class FilterManager:
     def __init__(self, logger=None):
@@ -345,6 +344,11 @@ class Filtering(AnalysisModule):
             'default': True,
             'description': 'Whether to filter the AnnData object in place (False not supported yet)'
         },
+        'layer_key':{
+            'type':str,
+            'description':'Layer of anndata to use for metrics',
+            'default':None
+        }
     }
     
     def __init__(self, name, params):
@@ -400,6 +404,11 @@ class Filtering(AnalysisModule):
         try:
             # Get the data
             adata = data_context.get("data")
+
+            # Set active layer if specified:
+            layer_key = self.params.get('layer_key',None)
+            if layer_key:
+                adata = set_active_layer(adata, layer_key)
             
             # Store original counts
             original_cells = adata.n_obs

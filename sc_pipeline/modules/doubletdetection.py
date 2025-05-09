@@ -3,6 +3,7 @@
 import logging
 import scanpy as sc
 from sc_pipeline.core.module import AnalysisModule
+from sc_pipeline.utils.adata_utils import set_active_layer
 
 class DoubletDetection(AnalysisModule):
     """Module for detecting doublets using scanpy's scrublet wrapper."""
@@ -37,7 +38,13 @@ class DoubletDetection(AnalysisModule):
             'type': bool,
             'default': True,
             'description': 'Whether to create histogram of doublet scores'
+        },
+        'layer_key':{
+            'type':str,
+            'description':'Layer of anndata to use for metrics',
+            'default':None
         }
+
     }
     
     def __init__(self, name, params):
@@ -64,6 +71,11 @@ class DoubletDetection(AnalysisModule):
             
             self.logger.info("Running doublet detection")
             
+            # Set active layer if specified:
+            layer_key = self.params.get('layer_key',None)
+            if layer_key:
+                adata = set_active_layer(adata, layer_key)
+
             # Run scrublet via scanpy
             sc.pp.scrublet(
                 adata,

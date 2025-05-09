@@ -4,6 +4,7 @@ import os
 import logging
 import scanpy as sc
 from sc_pipeline.core.module import AnalysisModule
+from sc_pipeline.utils.adata_utils import save_layer
 
 class DataLoading(AnalysisModule):
     """
@@ -54,6 +55,8 @@ class DataLoading(AnalysisModule):
 
             # Make variable names unique
             adata.var_names_make_unique()
+
+            adata = save_layer(adata, 'loaded_counts', make_active=True)
 
             # Store in data context
             data_context.set("data", adata)

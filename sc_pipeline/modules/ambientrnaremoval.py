@@ -10,6 +10,7 @@ import scipy.sparse as sp
 import json
 from sc_pipeline.core.module import AnalysisModule
 from sc_pipeline.utils.r_bridge import RBridge
+from sc_pipeline.utils.adata_utils import save_layer
 
 class AmbientRNARemoval(AnalysisModule):
     """Module for removing ambient RNA contamination using SoupX."""
@@ -158,19 +159,9 @@ class AmbientRNARemoval(AnalysisModule):
                 corrected_counts = corrected_counts.transpose()
                 self.logger.info(f"New shape after transposition: {corrected_counts.shape}")
 
-            # Save the original counts as a layer if not already done
-            if 'raw' not in adata.layers:
-                self.logger.info("Storing original counts in 'original' layer")
-                adata.layers['raw'] = adata.X.copy()
-
             # Add the SoupX-corrected counts as a new layer
             self.logger.info("Adding SoupX-corrected counts as 'soupx_corrected' layer")
-            adata.layers['soupx_corrected'] = corrected_counts
-            
-            # Replace the main matrix with the corrected counts if specified
-            if self.params.get('replace_main_matrix', True):
-                self.logger.info("Replacing main matrix with SoupX-corrected counts")
-                adata.X = adata.layers['soupx_corrected'].copy()
+            adata = save_layer(adata, 'soupx_corrected', data=corrected_counts, make_active=self.params.get('replace_main_matrix', True))
             
             # Add SoupX as a processing step in the unstructured data
             adata.uns['ambient_rna_removed'] = True
