@@ -9,7 +9,7 @@ pipeline:
     enabled: true
     modules_to_checkpoint:
       - all
-    max_checkpoints: 1
+    max_checkpoints: 9 
   
 modules:
   - name: Load Data

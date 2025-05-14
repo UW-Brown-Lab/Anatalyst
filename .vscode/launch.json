@@ -1,0 +1,32 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python Debugger: Run Pipeline",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/workspace/scripts/run_pipeline.py",
+            "console": "integratedTerminal",
+            "args": ["--config","config_examples/primary_config.yaml"]
+        },
+        {
+            "name": "Python Debugger: Run Pipeline at checkpoint",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/workspace/scripts/run_pipeline.py",
+            "console": "integratedTerminal",
+            "args": ["--config","config_examples/primary_config.yaml","--checkpoint","${input:checkpointName}"]
+        }
+    ],
+    "inputs":[
+        {
+            "id":"checkpointName",
+            "type":"promptString",
+            "description": "Name of the checkpoint to resume from."
+        }
+    ]
+}

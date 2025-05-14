@@ -142,9 +142,9 @@ class DimensionalityReduction(AnalysisModule):
             layer_key = self.params.get('layer_key', None)
             
             # Get keys for storing results
-            pca_key = self.params.get('pca_key', 'X_pca')
-            umap_key = self.params.get('umap_key', 'X_umap')
-            tsne_key = self.params.get('tsne_key', 'X_tsne')
+            pca_key = self.params.get('pca_key', None)
+            umap_key = self.params.get('umap_key', None)
+            tsne_key = self.params.get('tsne_key',None)
             neighbors_key = self.params.get('neighbors_key', None)
             
             # Store key names for reference
@@ -254,7 +254,7 @@ class DimensionalityReduction(AnalysisModule):
                         random_state=random_state, 
                         neighbors_key=neighbors_key,
                         copy=False,
-                        key_added=umap_key_short
+                        key_added=umap_key
                     )
                 else:
                     self.logger.info(f"Using existing UMAP embedding from '{umap_key}'")
@@ -272,7 +272,7 @@ class DimensionalityReduction(AnalysisModule):
                         n_pcs=n_pcs, 
                         random_state=random_state,
                         copy=False,
-                        key_added=tsne_key_short
+                        key_added=tsne_key
                     )
                 else:
                     self.logger.info(f"Using existing t-SNE embedding from '{tsne_key}'")
@@ -402,16 +402,15 @@ class DimensionalityReduction(AnalysisModule):
             
             # Plot PCA projection (first two components)
             if pca_key in adata.obsm:
-                fig = plt.figure(figsize=(8, 6))
-                sc.pl.embedding(
+                fig = sc.pl.embedding(
                     adata, 
                     basis=pca_key, 
                     color=None, 
-                    show=False, 
+                    return_fig=True, 
                     title=f"PCA Projection"
                 )
                 img_path = self.save_figure(data_context, self.name, fig, name="pca_projection")
-                
+
                 data_context.add_figure(
                     module_name=self.name,
                     title="PCA Projection",
@@ -421,12 +420,11 @@ class DimensionalityReduction(AnalysisModule):
             
             # Plot UMAP if computed
             if umap_key in adata.obsm:
-                fig = plt.figure(figsize=(8, 6))
-                sc.pl.embedding(
+                fig = sc.pl.embedding(
                     adata, 
                     basis=umap_key, 
                     color=None, 
-                    show=False, 
+                    return_fig=True, 
                     title="UMAP Projection"
                 )
                 img_path = self.save_figure(data_context, self.name, fig, name="umap_projection")
@@ -440,12 +438,11 @@ class DimensionalityReduction(AnalysisModule):
             
             # Plot t-SNE if computed
             if tsne_key in adata.obsm:
-                fig = plt.figure(figsize=(8, 6))
-                sc.pl.embedding(
+                fig = sc.pl.embedding(
                     adata, 
                     basis=tsne_key, 
                     color=None, 
-                    show=False, 
+                    return_fig=True, 
                     title="t-SNE Projection"
                 )
                 img_path = self.save_figure(data_context, self.name, fig, name="tsne_projection")
