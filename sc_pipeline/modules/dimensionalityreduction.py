@@ -95,6 +95,27 @@ class DimensionalityReduction(AnalysisModule):
             'default': None,
             'description': 'If provided, use this layer for computations instead of .X'
         },
+        # Clustering Parameters
+        'perform_clustering': {
+            'type': bool,
+            'default': True,
+            'description': 'Whether to perform clustering for visualization'
+        },
+        'cluster_method': {
+            'type': str,
+            'default': 'leiden',
+            'description': 'Clustering method to use (leiden or louvain)'
+        },
+        'resolutions': {
+            'type': list[float],
+            'default': [0.75, 1.0],
+            'description': 'Resolution parameters for clustering'
+        },
+        'cluster_key': {
+            'type': str,
+            'default': 'leiden',
+            'description': 'Key to store clustering results in adata.obs'
+        },
         
         # Visualization
         'create_plots': {
@@ -276,9 +297,101 @@ class DimensionalityReduction(AnalysisModule):
                     )
                 else:
                     self.logger.info(f"Using existing t-SNE embedding from '{tsne_key}'")
+            # --- STEP 5: CLUSTERING ---
             
-            # --- STEP 5: CREATE VISUALIZATIONS ---
+            # Check if we need to compute clusters for visualization
+            perform_clustering = self.params.get('perform_clustering', True)
+            cluster_method = self.params.get('cluster_method', 'leiden')
+            resolutions = self.params.get('resolutions', [0.75, 1.0])
+            cluster_key = self.params.get('cluster_key', 'leiden')
             
+            # Ensure resolutions is a list
+            if not isinstance(resolutions, list):
+                resolutions = [resolutions]
+
+            
+            if perform_clustering:
+                self.logger.info(f"Computing {cluster_method} clustering at {len(resolutions)} resolution levels")
+                
+                # Ensure we have neighborhood graph
+                if 'neighbors' not in adata.uns and neighbors_key not in adata.uns:
+                    self.logger.info("Computing neighborhood graph for clustering")
+                    sc.pp.neighbors(
+                        adata, 
+                        n_neighbors=n_neighbors, 
+                        n_pcs=n_pcs, 
+                        random_state=random_state,
+                        use_rep=pca_key
+                    )
+                
+                # Compute clustering at each resolution
+                for resolution in resolutions:
+                    # Create a resolution-specific key
+                    resolution_key = f"{cluster_key}_{resolution:.2f}".replace('.', '_')
+                    
+                    # Check if clustering at this resolution already exists and needs recomputation
+                    if resolution_key in adata.obs and not force_recompute:
+                        self.logger.info(f"Using existing clustering from '{resolution_key}'")
+                        n_clusters = len(adata.obs[resolution_key].cat.categories) if adata.obs[resolution_key].dtype.name == 'category' else len(np.unique(adata.obs[resolution_key]))
+                        self.logger.info(f"Found {n_clusters} clusters at resolution {resolution:.2f}")
+                        continue
+                    
+                    # Run the clustering algorithm
+                    if cluster_method == 'leiden':
+                        sc.tl.leiden(
+                            adata, 
+                            resolution=resolution, 
+                            random_state=random_state,
+                            key_added=resolution_key
+                        )
+                    elif cluster_method == 'louvain':
+                        sc.tl.louvain(
+                            adata, 
+                            resolution=resolution, 
+                            random_state=random_state,
+                            key_added=resolution_key
+                        )
+                    else:
+                        self.logger.warning(f"Unknown clustering method '{cluster_method}', falling back to leiden")
+                        sc.tl.leiden(
+                            adata, 
+                            resolution=resolution, 
+                            random_state=random_state,
+                            key_added=resolution_key
+                        )
+                    
+                    # Convert cluster labels to integers and save as a categorical type
+                    adata.obs[resolution_key] = adata.obs[resolution_key].astype('category')
+                    
+                    # Report the number of clusters found
+                    n_clusters = len(adata.obs[resolution_key].cat.categories)
+                    self.logger.info(f"Found {n_clusters} clusters with {cluster_method} at resolution {resolution:.2f}")
+                
+                # Use the first resolution as the default cluster_key if it doesn't already exist
+                default_resolution_key = f"{cluster_key}_{resolutions[0]:.2f}".replace('.', '_')
+                if cluster_key not in adata.obs and default_resolution_key in adata.obs:
+                    adata.obs[cluster_key] = adata.obs[default_resolution_key].copy()
+                    self.logger.info(f"Set '{default_resolution_key}' as the default clustering under '{cluster_key}'")
+            else:
+                self.logger.info("Skipping clustering step")
+
+            # Make sure all cluster columns are categorical
+            cluster_columns = [col for col in adata.obs.columns if col.startswith(f"{cluster_key}_") or col == cluster_key]
+            for col in cluster_columns:
+                if col in adata.obs and adata.obs[col].dtype.name != 'category':
+                    adata.obs[col] = adata.obs[col].astype('category')
+                    self.logger.info(f"Converted {col} to categorical")
+
+            # Store the resolution-specific clustering keys
+            adata.uns['clustering'] = {
+                'method': cluster_method,
+                'resolutions': resolutions,
+                'default_key': cluster_key,
+                'resolution_keys': [f"{cluster_key}_{res:.2f}".replace('.', '_') for res in resolutions]
+            }
+
+            # --- STEP 6: CREATE VISUALIZATIONS ---            
+
             if self.params.get('create_plots', True):
                 self._create_plots(adata, data_context)
             
@@ -361,6 +474,31 @@ class DimensionalityReduction(AnalysisModule):
             # Get the PCA key without 'X_' prefix for uns lookup
             pca_key_short = pca_key.replace('X_', '')
             
+            # Get color parameters
+            color_by = self.params.get('color_by', ['leiden', 'n_genes_by_counts', 'total_counts', 'pct_counts_mt'])
+            cluster_key = self.params.get('cluster_key', 'leiden')
+            
+            # Add all resolution-specific clustering keys to the color_by list if we performed clustering
+            if 'clustering' in adata.uns and 'resolution_keys' in adata.uns['clustering']:
+                clustering_keys = adata.uns['clustering']['resolution_keys']
+                # Add resolution-specific keys if they're not already in color_by
+                for key in clustering_keys:
+                    if key in adata.obs.columns and key not in color_by:
+                        color_by.append(key)
+            
+            # Make sure cluster_key is included in color_by if it exists
+            if cluster_key in adata.obs and cluster_key not in color_by:
+                color_by.insert(0, cluster_key)
+                
+            # Filter color_by to only include available columns
+            available_colors = [col for col in color_by if col in adata.obs.columns]
+            
+            if not available_colors:
+                self.logger.warning(f"None of the specified color features {color_by} found in data. Using default plots.")
+                available_colors = None
+            else:
+                self.logger.info(f"Coloring plots by: {available_colors}")
+            
             # Plot PCA variance explained
             if pca_key_short in adata.uns and 'variance_ratio' in adata.uns[pca_key_short]:
                 fig, ax = plt.subplots(1, 2, figsize=(12, 5))
@@ -402,57 +540,192 @@ class DimensionalityReduction(AnalysisModule):
             
             # Plot PCA projection (first two components)
             if pca_key in adata.obsm:
-                fig = sc.pl.embedding(
-                    adata, 
-                    basis=pca_key, 
-                    color=None, 
-                    return_fig=True, 
-                    title=f"PCA Projection"
-                )
-                img_path = self.save_figure(data_context, self.name, fig, name="pca_projection")
-
-                data_context.add_figure(
-                    module_name=self.name,
-                    title="PCA Projection",
-                    description="Projection of cells onto the first two principal components.",
-                    image_path=img_path
-                )
+                # Check if we have available colors
+                if available_colors:
+                    # Create a multi-panel figure for different colorings
+                    for color in available_colors:
+                        fig = sc.pl.embedding(
+                            adata, 
+                            basis=pca_key, 
+                            color=color,
+                            return_fig=True,
+                            title=f"PCA Projection - Colored by {color}"
+                        )
+                        img_path = self.save_figure(data_context, self.name, fig, name=f"pca_projection_{color}")
+                        
+                        data_context.add_figure(
+                            module_name=self.name,
+                            title=f"PCA Projection - {color}",
+                            description=f"Projection of cells onto the first two principal components, colored by {color}.",
+                            image_path=img_path
+                        )
+                else:
+                    # Create a simple uncolored plot
+                    fig = sc.pl.embedding(
+                        adata, 
+                        basis=pca_key, 
+                        color=None, 
+                        return_fig=True, 
+                        title=f"PCA Projection"
+                    )
+                    img_path = self.save_figure(data_context, self.name, fig, name="pca_projection")
+                    
+                    data_context.add_figure(
+                        module_name=self.name,
+                        title="PCA Projection",
+                        description="Projection of cells onto the first two principal components.",
+                        image_path=img_path
+                    )
             
             # Plot UMAP if computed
             if umap_key in adata.obsm:
-                fig = sc.pl.embedding(
-                    adata, 
-                    basis=umap_key, 
-                    color=None, 
-                    return_fig=True, 
-                    title="UMAP Projection"
-                )
-                img_path = self.save_figure(data_context, self.name, fig, name="umap_projection")
-                
-                data_context.add_figure(
-                    module_name=self.name,
-                    title="UMAP Projection",
-                    description="UMAP embedding of cells showing global structure of the dataset.",
-                    image_path=img_path
-                )
+                # Check if we have available colors
+                if available_colors:
+                    # Create a multi-panel figure for different colorings
+                    for color in available_colors:
+                        fig = sc.pl.embedding(
+                            adata, 
+                            basis=umap_key, 
+                            color=color,
+                            return_fig=True,
+                            title=f"UMAP Projection - Colored by {color}"
+                        )
+                        img_path = self.save_figure(data_context, self.name, fig, name=f"umap_projection_{color}")
+                        
+                        data_context.add_figure(
+                            module_name=self.name,
+                            title=f"UMAP Projection - {color}",
+                            description=f"UMAP embedding of cells showing global structure of the dataset, colored by {color}.",
+                            image_path=img_path
+                        )
+                else:
+                    # Create a simple uncolored plot
+                    fig = sc.pl.embedding(
+                        adata, 
+                        basis=umap_key, 
+                        color=None, 
+                        return_fig=True, 
+                        title="UMAP Projection"
+                    )
+                    img_path = self.save_figure(data_context, self.name, fig, name="umap_projection")
+                    
+                    data_context.add_figure(
+                        module_name=self.name,
+                        title="UMAP Projection",
+                        description="UMAP embedding of cells showing global structure of the dataset.",
+                        image_path=img_path
+                    )
             
             # Plot t-SNE if computed
             if tsne_key in adata.obsm:
-                fig = sc.pl.embedding(
-                    adata, 
-                    basis=tsne_key, 
-                    color=None, 
-                    return_fig=True, 
-                    title="t-SNE Projection"
-                )
-                img_path = self.save_figure(data_context, self.name, fig, name="tsne_projection")
+                # Check if we have available colors
+                if available_colors:
+                    # Create a multi-panel figure for different colorings
+                    for color in available_colors:
+                        fig = sc.pl.embedding(
+                            adata, 
+                            basis=tsne_key, 
+                            color=color,
+                            return_fig=True,
+                            title=f"t-SNE Projection - Colored by {color}"
+                        )
+                        img_path = self.save_figure(data_context, self.name, fig, name=f"tsne_projection_{color}")
+                        
+                        data_context.add_figure(
+                            module_name=self.name,
+                            title=f"t-SNE Projection - {color}",
+                            description=f"t-SNE embedding of cells showing global structure of the dataset, colored by {color}.",
+                            image_path=img_path
+                        )
+                else:
+                    # Create a simple uncolored plot
+                    fig = sc.pl.embedding(
+                        adata, 
+                        basis=tsne_key, 
+                        color=None, 
+                        return_fig=True, 
+                        title="t-SNE Projection"
+                    )
+                    img_path = self.save_figure(data_context, self.name, fig, name="tsne_projection")
+                    
+                    data_context.add_figure(
+                        module_name=self.name,
+                        title="t-SNE Projection",
+                        description="t-SNE embedding of cells showing global structure of the dataset.",
+                        image_path=img_path
+                    )
+                    
+            # If we did clustering, create summary plots showing cluster sizes at different resolutions
+            if 'clustering' in adata.uns and 'resolution_keys' in adata.uns['clustering']:
+                clustering_keys = adata.uns['clustering']['resolution_keys']
                 
-                data_context.add_figure(
-                    module_name=self.name,
-                    title="t-SNE Projection",
-                    description="t-SNE embedding of cells showing global structure of the dataset.",
-                    image_path=img_path
-                )
-                
+                for cluster_col in clustering_keys:
+                    if cluster_col in adata.obs:
+                        # Create a barplot of cluster sizes
+                        cluster_counts = adata.obs[cluster_col].value_counts().sort_index()
+                        clusters = cluster_counts.index.astype(str).tolist()
+                        
+                        # Get the same colors that scanpy would use for this clustering
+                        # First check if a color map already exists in adata.uns
+                        if f"{cluster_col}_colors" in adata.uns:
+                            cluster_colors = adata.uns[f"{cluster_col}_colors"]
+                            # Ensure we have enough colors for all clusters
+                            if len(cluster_colors) < len(clusters):
+                                # If not enough colors, fall back to default colormap
+                                cluster_colors = sc.pl.palettes.default_20[:len(clusters)]
+                        else:
+                            # Get default scanpy colors
+                            cluster_colors = sc.pl.palettes.default_20[:len(clusters)]
+
+                        # Create the bar plot with matching colors
+                        fig, ax = plt.subplots(figsize=(12, 6))
+                        bars = ax.bar(
+                            range(len(clusters)), 
+                            cluster_counts.values, 
+                            color=cluster_colors
+                        )
+                        
+                        # Add cluster labels on the x-axis
+                        ax.set_xticks(range(len(clusters)))
+                        ax.set_xticklabels(clusters)
+                        
+                        ax.set_xlabel('Cluster')
+                        ax.set_ylabel('Number of Cells')
+                        
+                        # Extract resolution from key (assuming format like 'leiden_0_50' for resolution 0.50)
+                        resolution_str = cluster_col.split('_', 1)[1].replace('_', '.')
+                        try:
+                            resolution = float(resolution_str)
+                            title = f'Cell Count by Cluster (Resolution = {resolution:.2f})'
+                        except ValueError:
+                            title = f'Cell Count by Cluster ({cluster_col})'
+                            
+                        ax.set_title(title)
+                        plt.xticks(rotation=45)
+                        plt.tight_layout()
+                        
+                        # Add cell count labels on top of each bar
+                        for bar, count in zip(bars, cluster_counts.values):
+                            height = bar.get_height()
+                            ax.text(
+                                bar.get_x() + bar.get_width()/2., 
+                                height + 0.1*max(cluster_counts.values)/100,  # Slightly above bar
+                                str(count),
+                                ha='center', 
+                                va='bottom', 
+                                rotation=0,
+                                fontsize=8
+                            )
+                        
+                        img_path = self.save_figure(data_context, self.name, fig, name=f"cluster_counts_{cluster_col}")
+                        
+                        data_context.add_figure(
+                            module_name=self.name,
+                            title=f"Cluster Cell Counts - {cluster_col}",
+                            description=f"Number of cells in each cluster identified by {cluster_col} clustering.",
+                            image_path=img_path,
+                            caption=f"Total of {len(cluster_counts)} clusters identified at this resolution."
+                        )
+                        
         except Exception as e:
-            self.logger.warning(f"Error creating dimensionality reduction plots: {e}")
+            self.logger.warning(f"Error creating dimensionality reduction plots: {e}", exc_info=True)
