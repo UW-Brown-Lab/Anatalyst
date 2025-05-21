@@ -94,6 +94,10 @@ RUN python3.11 -m pip install --no-cache-dir \
     markdown \
     scikit-image
     
+# Install mkdocs dependencies
+RUN python3.11 -m pip install --no-cache-dir \
+    mkdocs
+
 # Install BiocManager first
 RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org/')"
 

@@ -1,0 +1,63 @@
+site_name: Anatalyst
+site_description: The Analysis Catalyst -- a modular analysis pipeline framework built primarily for single-cell RNA-seq analysis
+site_author: Wesley Blashka
+repo_url: https://github.com/wblashka/
+repo_name: yourusername/sc_pipeline
+
+theme:
+  name: mkdocs
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.share
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js
+
+plugins:
+  - search
+  
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Getting Started: getting-started.md
+  - Configuration:
+    - Overview: configuration/index.md
+    - Examples: configuration/examples.md
+  - Modules:
+    - Overview: modules/index.md
+    - DataLoading: modules/dataloading.md
+    - QCMetrics: modules/qcmetrics.md
+    - AmbientRNARemoval: modules/ambientrnaremoval.md
+    - DoubletDetection: modules/doubletdetection.md
+    - Filtering: modules/filtering.md
+    - PearsonNormalization: modules/pearsonnormalization.md
+    - DimensionalityReduction: modules/dimensionalityreduction.md
+    - ReportGenerator: modules/reportgenerator.md
+  - Customization:
+    - Overview: customization/index.md
+    - Creating New Modules: customization/new-modules.md
+  - API Documentation:
+    - Overview: api/index.md
+    - Core Classes: api/core.md
+    - Utilities: api/utils.md
+  - Examples:
+    - Overview: examples/index.md
+    - PBMC Analysis: examples/pbmc.md
+  - About: about/index.md
