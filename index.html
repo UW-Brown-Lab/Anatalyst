@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="The Analysis Catalyst -- a modular analysis pipeline framework built primarily for single-cell RNA-seq analysis">
+        <meta name="author" content="Wesley Blashka">
+        
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>Anatalyst</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/fontawesome.min.css" rel="stylesheet">
+        <link href="css/brands.min.css" rel="stylesheet">
+        <link href="css/solid.min.css" rel="stylesheet">
+        <link href="css/v4-font-face.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href=".">Anatalyst</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="." class="nav-link active" aria-current="page">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="installation/" class="nav-link">Installation</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="getting-started/" class="nav-link">Getting Started</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Configuration</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="configuration/" class="dropdown-item">Overview</a>
+</li>
+                                    
+<li>
+    <a href="configuration/examples/" class="dropdown-item">Examples</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Modules</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="modules/" class="dropdown-item">Overview</a>
+</li>
+                                    
+<li>
+    <a href="modules/dataloading/" class="dropdown-item">DataLoading</a>
+</li>
+                                    
+<li>
+    <a href="modules/qcmetrics/" class="dropdown-item">QCMetrics</a>
+</li>
+                                    
+<li>
+    <a href="modules/ambientrnaremoval/" class="dropdown-item">AmbientRNARemoval</a>
+</li>
+                                    
+<li>
+    <a href="modules/doubletdetection/" class="dropdown-item">DoubletDetection</a>
+</li>
+                                    
+<li>
+    <a href="modules/filtering/" class="dropdown-item">Filtering</a>
+</li>
+                                    
+<li>
+    <a href="modules/pearsonnormalization/" class="dropdown-item">PearsonNormalization</a>
+</li>
+                                    
+<li>
+    <a href="modules/dimensionalityreduction/" class="dropdown-item">DimensionalityReduction</a>
+</li>
+                                    
+<li>
+    <a href="modules/reportgenerator/" class="dropdown-item">ReportGenerator</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Customization</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="customization/" class="dropdown-item">Overview</a>
+</li>
+                                    
+<li>
+    <a href="customization/new-modules/" class="dropdown-item">Creating New Modules</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">API Documentation</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="api/" class="dropdown-item">Overview</a>
+</li>
+                                    
+<li>
+    <a href="api/core/" class="dropdown-item">Core Classes</a>
+</li>
+                                    
+<li>
+    <a href="api/utils/" class="dropdown-item">Utilities</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Examples</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="examples/" class="dropdown-item">Overview</a>
+</li>
+                                    
+<li>
+    <a href="examples/pbmc/" class="dropdown-item">PBMC Analysis</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="about/" class="nav-link">About</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="installation/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/wblashka/edit/master/docs/index.md" class="nav-link">Edit on yourusername/sc_pipeline
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#anatalyst-the-analysis-catalyst-a-modular-pipeline-built-for-single-cell-rna-seq-analysis" class="nav-link">Anatalyst: The Analysis Catalyst - A Modular Pipeline built for Single-cell RNA-seq Analysis</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#key-features" class="nav-link">Key Features</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#workflow-overview" class="nav-link">Workflow Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#quick-start" class="nav-link">Quick Start</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#pipeline-diagram" class="nav-link">Pipeline Diagram</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="anatalyst-the-analysis-catalyst-a-modular-pipeline-built-for-single-cell-rna-seq-analysis">Anatalyst: The Analysis Catalyst - A Modular Pipeline built for Single-cell RNA-seq Analysis<a class="headerlink" href="#anatalyst-the-analysis-catalyst-a-modular-pipeline-built-for-single-cell-rna-seq-analysis" title="Permanent link">&para;</a></h1>
+<p><strong>Anatalyst</strong> is a flexible, modular Python pipeline designed to facilitate boilerplate analytical workflows that leverage existing Python and R programs. The current scope of module support is focused on Single Cell RNA sequencing, built on top of <a href="https://scanpy.readthedocs.io/">Scanpy</a>, providing a customizable workflow for common single-cell analysis tasks.</p>
+<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Modular Architecture</strong>: Each analysis step is encapsulated in a module that can be included or excluded as needed</li>
+<li><strong>Configurable Pipeline</strong>: Simple YAML configuration to customize pipeline parameters</li>
+<li><strong>Checkpoint System</strong>: Save and resume pipeline execution from checkpoints</li>
+<li><strong>R Integration</strong>: Seamless integration of R tools (like SoupX) for specialized analyses</li>
+<li><strong>Reproducible Analysis</strong>: Detailed reports with visualizations and parameter settings</li>
+<li><strong>Framework Flexibility</strong>: New modules can be custom-built and inserted into the pipeline to allow for any type of sequential analysis</li>
+</ul>
+<h2 id="workflow-overview">Workflow Overview<a class="headerlink" href="#workflow-overview" title="Permanent link">&para;</a></h2>
+<p>Anatalyst provides a comprehensive workflow for single-cell analysis:</p>
+<ol>
+<li><strong>Data Loading</strong>: Import aligned 10X single-cell data using an .h5 file</li>
+<li><strong>Quality Control</strong>: Calculate QC metrics and visualize distributions</li>
+<li><strong>Ambient RNA Removal</strong>: Remove background RNA contamination using SoupX</li>
+<li><strong>Doublet Detection</strong>: Identify and flag potential cell doublets</li>
+<li><strong>Cell Filtering</strong>: Filter out low-quality cells and outliers</li>
+<li><strong>Pearson Normalization</strong>: Normalize data using Pearson residuals</li>
+<li><strong>Dimensionality Reduction</strong>: PCA, UMAP, and t-SNE for visualization and analysis</li>
+<li><strong>Report Generation</strong>: Create comprehensive HTML reports with key figures</li>
+</ol>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<p>TBD - expecting pull Docker container with pipeline already installed
+Mount local directory for input/output and extra module insertion?</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Install the container</span>
+docker<span class="w"> </span>pull<span class="w"> </span>something-or-other
+
+<span class="c1"># Run a pipeline with a configuration file</span>
+python<span class="w"> </span>-m<span class="w"> </span>sc_pipeline.scripts.run_pipeline<span class="w"> </span>--config<span class="w"> </span>my_config.yaml
+<span class="c1"># This command will likely change and may just be the way the container is launched? </span>
+<span class="c1"># Perhaps these args just get passed to docker compose via ENV variables and we make a new entrypoint.sh file?</span>
+</code></pre></div>
+
+<p>Check out the <a href="getting-started/">Getting Started</a> guide for more detailed instructions.</p>
+<h2 id="pipeline-diagram">Pipeline Diagram<a class="headerlink" href="#pipeline-diagram" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>insert diagram here
+</code></pre></div></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
+        <script src="search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2025-05-21 18:50:21.802343+00:00
+-->
