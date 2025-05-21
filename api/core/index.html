@@ -183,8 +183,48 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#tbd" class="nav-link">TBD</a>
+            <li class="nav-item" data-bs-level="1"><a href="#anatalyst-pipeline-core-api" class="nav-link">Anatalyst Pipeline Core API</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#overview" class="nav-link">Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#core-components" class="nav-link">Core Components</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#utility-modules" class="nav-link">Utility Modules</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#pipeline-execution-flow" class="nav-link">Pipeline Execution Flow</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#checkpointing-and-error-recovery" class="nav-link">Checkpointing and Error Recovery</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#module-development-guidelines" class="nav-link">Module Development Guidelines</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#troubleshooting-and-debugging" class="nav-link">Troubleshooting and Debugging</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#advanced-configuration" class="nav-link">Advanced Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#best-practices" class="nav-link">Best Practices</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#conclusion" class="nav-link">Conclusion</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -192,7 +232,369 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="tbd">TBD<a class="headerlink" href="#tbd" title="Permanent link">&para;</a></h1></div>
+<h1 id="anatalyst-pipeline-core-api">Anatalyst Pipeline Core API<a class="headerlink" href="#anatalyst-pipeline-core-api" title="Permanent link">&para;</a></h1>
+<p>This document provides detailed documentation for the core components of the <code>Anatalyst</code> framework. The core modules form the foundation of the pipeline system, handling tasks such as configuration parsing, data management, module execution, and pipeline orchestration.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Analyst is designed around a modular architecture that allows for flexible composition of analysis workflows. Each analysis is broken down into a series of modules that each perform a specific task with the data. The core components facilitate this by:</p>
+<ol>
+<li><strong>Configuration Management</strong>: Reading and validating YAML configuration files that define pipeline steps</li>
+<li><strong>Data Context</strong>: Managing shared data between modules and providing checkpointing capabilities</li>
+<li><strong>Module System</strong>: Defining the base interface for all analysis modules</li>
+<li><strong>Pipeline Execution</strong>: Orchestrating the execution of modules in sequence</li>
+</ol>
+<h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h2>
+<h3 id="configparser">ConfigParser<a class="headerlink" href="#configparser" title="Permanent link">&para;</a></h3>
+<p>The <code>ConfigParser</code> class handles the reading and validation of YAML configuration files that define pipeline structure and parameters.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sc_pipeline.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigParser</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;path/to/config.yaml&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h4 id="key-methods">Key Methods<a class="headerlink" href="#key-methods" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>parse(config_file)</code>: Parses a YAML configuration file and returns the validated configuration dictionary.</li>
+<li><code>_validate_config(config)</code>: Internal method that validates the structure of the configuration.</li>
+<li><code>_set_defaults(config)</code>: Internal method that sets default values for optional configuration parameters.</li>
+</ul>
+<h4 id="configuration-structure">Configuration Structure<a class="headerlink" href="#configuration-structure" title="Permanent link">&para;</a></h4>
+<p>A basic configuration file should have the following structure:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">pipeline</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my_pipeline</span>
+<span class="w">  </span><span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./output</span>
+<span class="w">  </span><span class="nt">r_memory_limit_gb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span><span class="w">  </span><span class="c1"># Optional</span>
+<span class="w">  </span><span class="nt">figure_defaults</span><span class="p">:</span><span class="w">      </span><span class="c1"># Optional</span>
+<span class="w">    </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="w">    </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+<span class="w">  </span><span class="nt">checkpointing</span><span class="p">:</span><span class="w">        </span><span class="c1"># Optional</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">modules_to_checkpoint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span><span class="w">  </span><span class="c1"># or a list of module names</span>
+<span class="w">    </span><span class="nt">max_checkpoints</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+
+<span class="nt">modules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">module1</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ModuleType</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">param1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value1</span>
+<span class="w">      </span><span class="nt">param2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value2</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">module2</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AnotherModuleType</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">param1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value1</span>
+</code></pre></div>
+
+<h4 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h4>
+<p>In order to provide module level access to the pipeline's configuration, the executor adds the entire parsed configuration to the <code>DataContext</code> shortly after its instantiation before any modules are run. This can be accessed from inside any module using <code>data_context.get('CONFIG')</code></p>
+<h3 id="datacontext">DataContext<a class="headerlink" href="#datacontext" title="Permanent link">&para;</a></h3>
+<p>The <code>DataContext</code> class provides a shared storage space for data passed between modules in the pipeline. It also offers checkpointing capabilities to save and restore pipeline state. Anything handled inside of a module that is not explicitly written to a file space or to the <code>DataContext</code> will be unavailable</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sc_pipeline.core.data_context</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataContext</span>
+
+<span class="c1"># Create a data context with checkpointing enabled</span>
+<span class="n">context</span> <span class="o">=</span> <span class="n">DataContext</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="o">=</span><span class="s2">&quot;./checkpoints&quot;</span><span class="p">,</span> <span class="n">max_checkpoints</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># Store and retrieve data</span>
+<span class="n">context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save and load checkpoints</span>
+<span class="n">context</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="s2">&quot;after_module1&quot;</span><span class="p">)</span>
+<span class="n">context</span><span class="o">.</span><span class="n">load_checkpoint</span><span class="p">(</span><span class="s2">&quot;after_module1&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h4 id="key-methods_1">Key Methods<a class="headerlink" href="#key-methods_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>set(key, value)</code>: Store data by key</li>
+<li><code>get(key, default=None)</code>: Retrieve data by key, with an optional default value</li>
+<li><code>__contains__(key)</code>: Check if a key exists (<code>key in context</code>)</li>
+<li><code>keys()</code>: Get all available data keys</li>
+<li><code>save_checkpoint(checkpoint_name)</code>: Save the current state to a checkpoint file</li>
+<li><code>load_checkpoint(checkpoint_name)</code>: Load data from a checkpoint file</li>
+<li><code>add_figure(module_name, title=None, description=None, image_path=None, caption=None)</code>: Add a figure to be included in reports</li>
+</ul>
+<h3 id="analysismodule">AnalysisModule<a class="headerlink" href="#analysismodule" title="Permanent link">&para;</a></h3>
+<p>The <code>AnalysisModule</code> class is the base class for all analysis modules in the pipeline. It defines the interface that modules must implement and provides common functionality.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sc_pipeline.core.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnalysisModule</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyModule</span><span class="p">(</span><span class="n">AnalysisModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom module implementation.&quot;&quot;&quot;</span>
+
+    <span class="n">PARAMETER_SCHEMA</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;param1&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Description of parameter 1&#39;</span>
+        <span class="p">},</span>
+        <span class="s1">&#39;param2&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Description of parameter 2&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;input1&quot;</span><span class="p">,</span> <span class="s2">&quot;input2&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;output1&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_context</span><span class="p">):</span>
+        <span class="c1"># Implementation of module functionality</span>
+        <span class="c1"># Access parameters with self.params.get(&#39;param_name&#39;, default_value)</span>
+        <span class="c1"># Access inputs with data_context.get(&#39;input_name&#39;)</span>
+        <span class="c1"># Store outputs with data_context.set(&#39;output_name&#39;, value)</span>
+        <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># Return True if successful, False otherwise</span>
+</code></pre></div>
+
+<h4 id="key-methods_2">Key Methods<a class="headerlink" href="#key-methods_2" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>__init__(name, params)</code>: Initialize the module with a name and parameters</li>
+<li><code>run(data_context)</code>: Execute the module's analysis (must be implemented by subclasses)</li>
+<li><code>validate_inputs(data_context)</code>: Check if all required inputs are available</li>
+<li><code>validate_outputs(data_context)</code>: Check if all expected outputs were created</li>
+<li><code>_validate_params(provided_params)</code>: Validate parameters against schema and apply defaults</li>
+<li><code>get_metadata()</code>: Return metadata about the module</li>
+<li><code>save_figure(data_context, module_name, fig, figsize=None, name=None, output_dir=None, dpi=300)</code>: Save a matplotlib figure</li>
+</ul>
+<h4 id="parameter-schema-definition">Parameter Schema Definition<a class="headerlink" href="#parameter-schema-definition" title="Permanent link">&para;</a></h4>
+<p>Module parameters can be defined using the <code>PARAMETER_SCHEMA</code> class variable. This schema is used to validate parameters and apply defaults. Each parameter entry should include:</p>
+<ul>
+<li><code>type</code>: The expected Python type (e.g., <code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>list</code>, <code>dict</code>)</li>
+<li><code>required</code>: Whether the parameter is required (default: <code>False</code>)</li>
+<li><code>default</code>: Default value if not provided (optional)</li>
+<li><code>description</code>: Human-readable description of the parameter (optional)</li>
+</ul>
+<p>For list parameters, you can specify the expected element type using <code>element_type</code>.</p>
+<h3 id="pipelineexecutor">PipelineExecutor<a class="headerlink" href="#pipelineexecutor" title="Permanent link">&para;</a></h3>
+<p>The <code>PipelineExecutor</code> class handles the orchestration of pipeline execution, running modules in sequence according to the configuration.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sc_pipeline.core.executor</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineExecutor</span>
+
+<span class="c1"># Create and run a pipeline from a configuration file</span>
+<span class="n">executor</span> <span class="o">=</span> <span class="n">PipelineExecutor</span><span class="p">(</span><span class="s2">&quot;path/to/config.yaml&quot;</span><span class="p">)</span>
+<span class="n">success</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="c1"># Optionally, start from a checkpoint</span>
+<span class="n">success</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">start_from</span><span class="o">=</span><span class="s2">&quot;after_module1&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h4 id="key-methods_3">Key Methods<a class="headerlink" href="#key-methods_3" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>__init__(config_file)</code>: Initialize the executor with a configuration file</li>
+<li><code>register_module_type(module_type, module_class)</code>: Register a module type with its implementing class</li>
+<li><code>run(start_from=None)</code>: Execute the pipeline, optionally starting from a checkpoint</li>
+<li><code>_get_module_class(module_type)</code>: Internal method to get the class for a module type</li>
+<li><code>_set_global_settings()</code>: Internal method to store global pipeline settings</li>
+</ul>
+<h2 id="utility-modules">Utility Modules<a class="headerlink" href="#utility-modules" title="Permanent link">&para;</a></h2>
+<h3 id="rbridge">RBridge<a class="headerlink" href="#rbridge" title="Permanent link">&para;</a></h3>
+<p>The <code>RBridge</code> class provides a bridge for calling R functions from Python, using a temporary workspace directory for file exchange.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sc_pipeline.utils.r_bridge</span><span class="w"> </span><span class="kn">import</span> <span class="n">RBridge</span>
+
+<span class="c1"># Create an R bridge with a specified memory limit</span>
+<span class="n">r_bridge</span> <span class="o">=</span> <span class="n">RBridge</span><span class="p">(</span><span class="n">r_script_dir</span><span class="o">=</span><span class="s2">&quot;./r_scripts&quot;</span><span class="p">,</span> <span class="n">memory_limit_gb</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="c1"># Run an R script with arguments</span>
+<span class="n">success</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">r_bridge</span><span class="o">.</span><span class="n">run_r_script</span><span class="p">(</span><span class="s2">&quot;script.R&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;arg1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span> <span class="s2">&quot;arg2&quot;</span><span class="p">:</span> <span class="s2">&quot;value2&quot;</span><span class="p">})</span>
+
+<span class="c1"># Get the path to a file in the workspace</span>
+<span class="n">file_path</span> <span class="o">=</span> <span class="n">r_bridge</span><span class="o">.</span><span class="n">get_workspace_path</span><span class="p">(</span><span class="s2">&quot;output.txt&quot;</span><span class="p">)</span>
+
+<span class="c1"># Clean up when done</span>
+<span class="n">r_bridge</span><span class="o">.</span><span class="n">cleanup_workspace</span><span class="p">()</span>
+</code></pre></div>
+
+<h3 id="anndata-utilities">AnnData Utilities<a class="headerlink" href="#anndata-utilities" title="Permanent link">&para;</a></h3>
+<p>The <code>adata_utils</code> module provides utilities for working with AnnData objects, particularly focused on managing layers.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sc_pipeline.utils.adata_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_layer</span><span class="p">,</span> <span class="n">set_active_layer</span>
+
+<span class="c1"># Save data as a layer in AnnData</span>
+<span class="n">adata</span> <span class="o">=</span> <span class="n">save_layer</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;raw_counts&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">make_active</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Set a specific layer as the active layer (X matrix)</span>
+<span class="n">adata</span> <span class="o">=</span> <span class="n">set_active_layer</span><span class="p">(</span><span class="n">adata</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="s2">&quot;normalized&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="pipeline-execution-flow">Pipeline Execution Flow<a class="headerlink" href="#pipeline-execution-flow" title="Permanent link">&para;</a></h2>
+<ol>
+<li>The <code>PipelineExecutor</code> parses the configuration file using <code>ConfigParser</code></li>
+<li>Global settings are stored in the <code>DataContext</code></li>
+<li>Each module is executed in sequence:</li>
+<li>The module class is dynamically imported based on the module type</li>
+<li>An instance of the module is created with the specified name and parameters</li>
+<li>Required inputs are validated</li>
+<li>The module's <code>run</code> method is called with the data context</li>
+<li>Outputs are validated</li>
+<li>If checkpointing is enabled, a checkpoint is created</li>
+<li>If any module fails, execution stops and returns <code>False</code></li>
+<li>If all modules complete successfully, execution returns <code>True</code></li>
+</ol>
+<h2 id="checkpointing-and-error-recovery">Checkpointing and Error Recovery<a class="headerlink" href="#checkpointing-and-error-recovery" title="Permanent link">&para;</a></h2>
+<p>The pipeline supports checkpointing to save and restore state between runs. This allows for recovery from failures without having to restart the entire pipeline.</p>
+<p>To enable checkpointing, configure the checkpointing section in your configuration:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">pipeline</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># ... other settings ...</span>
+<span class="w">  </span><span class="nt">checkpointing</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">modules_to_checkpoint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span><span class="w">  </span><span class="c1"># or a list of module names</span>
+<span class="w">    </span><span class="nt">max_checkpoints</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+</code></pre></div>
+
+<p>To resume from a checkpoint, use the <code>start_from</code> parameter when running the pipeline:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">executor</span> <span class="o">=</span> <span class="n">PipelineExecutor</span><span class="p">(</span><span class="s2">&quot;path/to/config.yaml&quot;</span><span class="p">)</span>
+<span class="n">executor</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">start_from</span><span class="o">=</span><span class="s2">&quot;after_module1&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="module-development-guidelines">Module Development Guidelines<a class="headerlink" href="#module-development-guidelines" title="Permanent link">&para;</a></h2>
+<p>When developing new modules for the pipeline, follow these guidelines:</p>
+<ol>
+<li>Inherit from <code>AnalysisModule</code></li>
+<li>Define <code>PARAMETER_SCHEMA</code> to specify parameters and their validation rules</li>
+<li>Define <code>required_inputs</code> and <code>outputs</code> in the <code>__init__</code> method</li>
+<li>Implement the <code>run(data_context)</code> method to perform the module's functionality</li>
+<li>Handle exceptions and log appropriate messages</li>
+<li>Return <code>True</code> if successful, <code>False</code> otherwise</li>
+</ol>
+<p>Example implementation:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sc_pipeline.core.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnalysisModule</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyModule</span><span class="p">(</span><span class="n">AnalysisModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A custom module for the pipeline.&quot;&quot;&quot;</span>
+
+    <span class="n">PARAMETER_SCHEMA</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;param1&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Description of parameter 1&#39;</span>
+        <span class="p">},</span>
+        <span class="s1">&#39;param2&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Description of parameter 2&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Module.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;input1&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;output1&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_context</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get inputs</span>
+            <span class="n">input_data</span> <span class="o">=</span> <span class="n">data_context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input1&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Get parameters</span>
+            <span class="n">param1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;param1&#39;</span><span class="p">)</span>
+            <span class="n">param2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;param2&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing data with parameters: </span><span class="si">{</span><span class="n">param1</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">param2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Process data</span>
+            <span class="n">output_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_data</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">)</span>
+
+            <span class="c1"># Store outputs</span>
+            <span class="n">data_context</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;output1&quot;</span><span class="p">,</span> <span class="n">output_data</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing completed successfully&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
+        <span class="c1"># Implementation of data processing</span>
+        <span class="k">pass</span>
+</code></pre></div>
+
+<h2 id="troubleshooting-and-debugging">Troubleshooting and Debugging<a class="headerlink" href="#troubleshooting-and-debugging" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Module not found</strong>: Ensure the module class is in the correct path (<code>sc_pipeline.modules.moduletype</code>) or register it manually with <code>register_module_type</code>.</li>
+<li><strong>Missing inputs</strong>: Check that previous modules correctly set required outputs and that output keys match the required input keys.</li>
+<li><strong>Parameter validation failures</strong>: Check the parameter schema and ensure parameters match the expected types and constraints.</li>
+<li><strong>Checkpoint loading failures</strong>: Ensure the checkpoint exists and is compatible with the current configuration.</li>
+</ol>
+<h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
+<p>The pipeline uses Python's logging module to provide detailed logs for troubleshooting. Adjust the log level to see more or less detail:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="c1"># Set log level for detailed output</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+<span class="c1"># For less detailed output</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Logger hierarchy:
+- <code>ConfigParser</code>: Messages related to configuration parsing
+- <code>DataContext</code>: Messages related to data management and checkpointing
+- <code>PipelineExecutor</code>: Messages related to pipeline execution
+- <code>Module.&lt;name&gt;</code>: Messages from specific modules (e.g., <code>Module.data_loading</code>)</p>
+<h2 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="configuration-file-structure">Configuration File Structure<a class="headerlink" href="#configuration-file-structure" title="Permanent link">&para;</a></h3>
+<p>The configuration file controls the entire pipeline. Here's a more detailed explanation of its structure:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">pipeline</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my_pipeline</span><span class="w">                </span><span class="c1"># Name of the pipeline</span>
+<span class="w">  </span><span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./output</span><span class="w">            </span><span class="c1"># Directory for output files</span>
+<span class="w">  </span><span class="nt">r_memory_limit_gb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span><span class="w">            </span><span class="c1"># Memory limit for R scripts</span>
+<span class="w">  </span><span class="nt">figure_defaults</span><span class="p">:</span><span class="w">                </span><span class="c1"># Default figure settings</span>
+<span class="w">    </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="w">    </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+<span class="w">  </span><span class="nt">checkpointing</span><span class="p">:</span><span class="w">                  </span><span class="c1"># Checkpointing configuration</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">modules_to_checkpoint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span><span class="w">    </span><span class="c1"># or a list of module names</span>
+<span class="w">    </span><span class="nt">max_checkpoints</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+
+<span class="nt">modules</span><span class="p">:</span><span class="w">                          </span><span class="c1"># List of modules to execute</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">module1</span><span class="w">                 </span><span class="c1"># Name of this module instance</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ModuleType</span><span class="w">              </span><span class="c1"># Type of module (class name)</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span><span class="w">                       </span><span class="c1"># Module-specific parameters</span>
+<span class="w">      </span><span class="nt">param1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value1</span>
+<span class="w">      </span><span class="nt">param2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value2</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">module2</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AnotherModuleType</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">param1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value1</span>
+</code></pre></div>
+
+<h3 id="dynamic-module-loading">Dynamic Module Loading<a class="headerlink" href="#dynamic-module-loading" title="Permanent link">&para;</a></h3>
+<p>The pipeline automatically tries to import module classes based on their type. For example, if the configuration specifies <code>type: DataLoading</code>, the executor will try to import:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sc_pipeline.modules.dataloading</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoading</span>
+</code></pre></div>
+
+<p>If you have modules outside the standard location, you can register them manually:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">custom_module</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomModule</span>
+
+<span class="n">executor</span> <span class="o">=</span> <span class="n">PipelineExecutor</span><span class="p">(</span><span class="s2">&quot;path/to/config.yaml&quot;</span><span class="p">)</span>
+<span class="n">executor</span><span class="o">.</span><span class="n">register_module_type</span><span class="p">(</span><span class="s2">&quot;CustomType&quot;</span><span class="p">,</span> <span class="n">CustomModule</span><span class="p">)</span>
+<span class="n">executor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</code></pre></div>
+
+<h3 id="report-generation">Report Generation<a class="headerlink" href="#report-generation" title="Permanent link">&para;</a></h3>
+<p>The pipeline includes a <code>ReportGenerator</code> module that can generate Markdown and HTML reports from the results of other modules. To add content to the report, modules can add figures using the <code>data_context.add_figure()</code> method:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">data_context</span><span class="o">.</span><span class="n">add_figure</span><span class="p">(</span>
+    <span class="n">module_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Figure Title&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Description of the figure&quot;</span><span class="p">,</span>
+    <span class="n">image_path</span><span class="o">=</span><span class="n">img_path</span><span class="p">,</span>
+    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Figure caption&quot;</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Immutability</strong>: Modules should avoid modifying input data directly, instead creating modified copies or using layers</li>
+<li><strong>Error Handling</strong>: Always catch exceptions and log appropriate messages</li>
+<li><strong>Validation</strong>: Validate inputs and parameters before processing</li>
+<li><strong>Documentation</strong>: Provide detailed docstrings and parameter descriptions</li>
+<li><strong>Logging</strong>: Use the logger to provide informative messages at appropriate levels</li>
+</ol>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>The SC Pipeline core provides a flexible and extensible framework for building single-cell RNA-seq analysis pipelines. By understanding these core components, you can effectively develop new modules and customize the pipeline for specific research needs.</p>
+<p>For more information on specific modules, see the <a href="./modules.md">Module Documentation</a>.</p></div>
             </div>
         </div>
 
