@@ -96,7 +96,8 @@ RUN python3.11 -m pip install --no-cache-dir \
     
 # Install mkdocs dependencies
 RUN python3.11 -m pip install --no-cache-dir \
-    mkdocs
+    mkdocs \
+    mkdocs-material
 
 # Install BiocManager first
 RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org/')"

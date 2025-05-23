@@ -90,10 +90,3 @@ The module's visualization uses Scanpy's `pl.violin` functionality for creating 
 
 - [Filtering Module](filtering.md): For filtering cells based on QC metrics
 - [Scanpy QC Documentation](https://scanpy.readthedocs.io/en/stable/generated/scanpy.pp.calculate_qc_metrics.html): For more details on the underlying implementation
-
-## API Reference
-
-::: sc_pipeline.modules.qcmetrics.QCMetrics
-    options:
-      show_root_heading: true
-      show_source: true

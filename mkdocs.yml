@@ -1,14 +1,14 @@
 site_name: Anatalyst
-site_description: The Analysis Catalyst -- a modular analysis pipeline framework built primarily for single-cell RNA-seq analysis
+site_description: The Analysis Catalyst -- a modular analysis pipeline framework
 site_author: Wesley Blashka
-repo_url: https://github.com/wblashka/
-repo_name: yourusername/sc_pipeline
+repo_url: https://github.com/UW-Brown-Lab/Anatalyst
+repo_name: UW-Brown-Lab/Anatalyst
 
 theme:
-  name: mkdocs
+  name: material
   palette:
-    primary: indigo
-    accent: indigo
+    scheme: slate
+    primary: red
   features:
     - navigation.instant
     - navigation.tracking
@@ -24,6 +24,14 @@ markdown_extensions:
   - codehilite
   - footnotes
   - meta
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
   - toc:
       permalink: true
 
@@ -32,7 +40,7 @@ extra_javascript:
 
 plugins:
   - search
-  
+
 nav:
   - Home: index.md
   - Installation: installation.md
