@@ -828,15 +828,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#api-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      API Reference
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1449,15 +1440,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#api-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      API Reference
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1525,15 +1507,14 @@
 </tbody>
 </table>
 <h2 id="example-configuration">Example Configuration<a class="headerlink" href="#example-configuration" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre_qc</span>
-<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">QCMetrics</span>
-<span class="w">  </span><span class="nt">params</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">mito_pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;^MT-&quot;</span>
-<span class="w">    </span><span class="nt">ribo_pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;^RP[SL]&quot;</span>
-<span class="w">    </span><span class="nt">create_plots</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">    </span><span class="nt">plot_title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Pre-filtering</span><span class="nv"> </span><span class="s">QC</span><span class="nv"> </span><span class="s">Metrics&quot;</span>
-</code></pre></div>
-
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre_qc</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">QCMetrics</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">params</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">mito_pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;^MT-&quot;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">ribo_pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;^RP[SL]&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">create_plots</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">plot_title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Pre-filtering</span><span class="nv"> </span><span class="s">QC</span><span class="nv"> </span><span class="s">Metrics&quot;</span>
+</span></code></pre></div>
 <h2 id="inputoutput">Input/Output<a class="headerlink" href="#inputoutput" title="Permanent link">&para;</a></h2>
 <h3 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1590,11 +1571,6 @@
 <li><a href="../filtering/">Filtering Module</a>: For filtering cells based on QC metrics</li>
 <li><a href="https://scanpy.readthedocs.io/en/stable/generated/scanpy.pp.calculate_qc_metrics.html">Scanpy QC Documentation</a>: For more details on the underlying implementation</li>
 </ul>
-<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
-<p>::: sc_pipeline.modules.qcmetrics.QCMetrics
-    options:
-      show_root_heading: true
-      show_source: true</p>
 
 
 
