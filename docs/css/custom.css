@@ -1,0 +1,28 @@
+/* Banner at the very top of the page */
+body::before {
+    content: "🚧 Work in Progress - Documentation Under Construction 🚧";
+    display: block;
+    background-color: #ff9800;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    font-size: large;
+    margin: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    box-sizing: border-box;
+}
+
+/* Push the rest of the content down to avoid overlap */
+body {
+    margin-top: 40px !important; /* Adjust this value based on your banner height */
+}
+
+/* For themes with fixed headers, you might need additional adjustments */
+.md-header {
+    top: 40px !important; /* Adjust if using Material theme */
+}
