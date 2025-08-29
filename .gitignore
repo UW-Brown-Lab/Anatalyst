@@ -1,4 +1,5 @@
 output
+*~
 *.pyc
 /.devcontainer
 /.venv
