@@ -110,4 +110,4 @@ COPY sc_pipeline /app/sc_pipeline
 COPY scripts /app/scripts
 COPY tests /app/tests
 
-ENTRYPOINT ["/bin/bash"]
+CMD ["/bin/bash"]
