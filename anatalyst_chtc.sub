@@ -1,0 +1,27 @@
+# USE THIS AS A TEMPLATE FOR YOUR ANATALYST
+# PROJECT. YOU'LL LIKELY WANT TO CUSTOMIZE
+# DETAILS IN YOUR OWN.
+
+
+# we use the docker universe and pull the image from dockerhub
+universe = container
+container_image = docker://fkuusisto/anatalyst:latest
+
+# copy over the script that runs the pipeline
+# and the config file that defines the pipeline
+# assume that data will be copied from staging
+transfer_input_files = anatalyst_chtc.sh, config.yml
+executable = anatalyst_chtc.sh
+
+# get logging set up - use unique info to prevent clobbering
+log = anatalyst_$(Cluster)_$(Process).log
+error = anatalyst_$(Cluster)_$(Process).err
+output = anatalyst_$(Cluster)_$(Process).out
+
+# move these around as needed - can take a lot though
+request_cpus = 8
+request_memory = 128GB
+request_disk = 128GB
+
+# just enqueue one
+queue
